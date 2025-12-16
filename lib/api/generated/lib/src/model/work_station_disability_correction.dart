@@ -1,0 +1,321 @@
+//
+// AUTO-GENERATED FILE, DO NOT MODIFY!
+//
+
+// ignore_for_file: unused_element
+import 'package:beautyflow_api/src/model/workstation_disability_time_slot.dart';
+import 'package:built_collection/built_collection.dart';
+import 'package:beautyflow_api/src/model/date.dart';
+import 'package:built_value/built_value.dart';
+import 'package:built_value/serializer.dart';
+
+part 'work_station_disability_correction.g.dart';
+
+/// Serializer per le correzioni di disabilitazioni postazioni.
+///
+/// Properties:
+/// * [id] 
+/// * [workstationId] 
+/// * [workstationName] 
+/// * [reason] 
+/// * [startDate] 
+/// * [endDate] 
+/// * [disabilityType] 
+/// * [ignore] 
+/// * [ignoreMorning] 
+/// * [ignoreAfternoon] 
+/// * [previousIgnore] 
+/// * [previousIgnoreMorning] 
+/// * [previousIgnoreAfternoon] 
+/// * [timeSlots] 
+@BuiltValue()
+abstract class WorkStationDisabilityCorrection implements Built<WorkStationDisabilityCorrection, WorkStationDisabilityCorrectionBuilder> {
+  @BuiltValueField(wireName: r'id')
+  int get id;
+
+  @BuiltValueField(wireName: r'workstation_id')
+  int get workstationId;
+
+  @BuiltValueField(wireName: r'workstation_name')
+  String get workstationName;
+
+  @BuiltValueField(wireName: r'reason')
+  String get reason;
+
+  @BuiltValueField(wireName: r'start_date')
+  Date get startDate;
+
+  @BuiltValueField(wireName: r'end_date')
+  Date? get endDate;
+
+  @BuiltValueField(wireName: r'disability_type')
+  String get disabilityType;
+
+  @BuiltValueField(wireName: r'ignore')
+  bool get ignore;
+
+  @BuiltValueField(wireName: r'ignore_morning')
+  bool get ignoreMorning;
+
+  @BuiltValueField(wireName: r'ignore_afternoon')
+  bool get ignoreAfternoon;
+
+  @BuiltValueField(wireName: r'previous_ignore')
+  bool? get previousIgnore;
+
+  @BuiltValueField(wireName: r'previous_ignore_morning')
+  bool? get previousIgnoreMorning;
+
+  @BuiltValueField(wireName: r'previous_ignore_afternoon')
+  bool? get previousIgnoreAfternoon;
+
+  @BuiltValueField(wireName: r'time_slots')
+  BuiltList<WorkstationDisabilityTimeSlot> get timeSlots;
+
+  WorkStationDisabilityCorrection._();
+
+  factory WorkStationDisabilityCorrection([void updates(WorkStationDisabilityCorrectionBuilder b)]) = _$WorkStationDisabilityCorrection;
+
+  @BuiltValueHook(initializeBuilder: true)
+  static void _defaults(WorkStationDisabilityCorrectionBuilder b) => b;
+
+  @BuiltValueSerializer(custom: true)
+  static Serializer<WorkStationDisabilityCorrection> get serializer => _$WorkStationDisabilityCorrectionSerializer();
+}
+
+class _$WorkStationDisabilityCorrectionSerializer implements PrimitiveSerializer<WorkStationDisabilityCorrection> {
+  @override
+  final Iterable<Type> types = const [WorkStationDisabilityCorrection, _$WorkStationDisabilityCorrection];
+
+  @override
+  final String wireName = r'WorkStationDisabilityCorrection';
+
+  Iterable<Object?> _serializeProperties(
+    Serializers serializers,
+    WorkStationDisabilityCorrection object, {
+    FullType specifiedType = FullType.unspecified,
+  }) sync* {
+    yield r'id';
+    yield serializers.serialize(
+      object.id,
+      specifiedType: const FullType(int),
+    );
+    yield r'workstation_id';
+    yield serializers.serialize(
+      object.workstationId,
+      specifiedType: const FullType(int),
+    );
+    yield r'workstation_name';
+    yield serializers.serialize(
+      object.workstationName,
+      specifiedType: const FullType(String),
+    );
+    yield r'reason';
+    yield serializers.serialize(
+      object.reason,
+      specifiedType: const FullType(String),
+    );
+    yield r'start_date';
+    yield serializers.serialize(
+      object.startDate,
+      specifiedType: const FullType(Date),
+    );
+    yield r'end_date';
+    yield object.endDate == null ? null : serializers.serialize(
+      object.endDate,
+      specifiedType: const FullType.nullable(Date),
+    );
+    yield r'disability_type';
+    yield serializers.serialize(
+      object.disabilityType,
+      specifiedType: const FullType(String),
+    );
+    yield r'ignore';
+    yield serializers.serialize(
+      object.ignore,
+      specifiedType: const FullType(bool),
+    );
+    yield r'ignore_morning';
+    yield serializers.serialize(
+      object.ignoreMorning,
+      specifiedType: const FullType(bool),
+    );
+    yield r'ignore_afternoon';
+    yield serializers.serialize(
+      object.ignoreAfternoon,
+      specifiedType: const FullType(bool),
+    );
+    yield r'previous_ignore';
+    yield object.previousIgnore == null ? null : serializers.serialize(
+      object.previousIgnore,
+      specifiedType: const FullType.nullable(bool),
+    );
+    yield r'previous_ignore_morning';
+    yield object.previousIgnoreMorning == null ? null : serializers.serialize(
+      object.previousIgnoreMorning,
+      specifiedType: const FullType.nullable(bool),
+    );
+    yield r'previous_ignore_afternoon';
+    yield object.previousIgnoreAfternoon == null ? null : serializers.serialize(
+      object.previousIgnoreAfternoon,
+      specifiedType: const FullType.nullable(bool),
+    );
+    yield r'time_slots';
+    yield serializers.serialize(
+      object.timeSlots,
+      specifiedType: const FullType(BuiltList, [FullType(WorkstationDisabilityTimeSlot)]),
+    );
+  }
+
+  @override
+  Object serialize(
+    Serializers serializers,
+    WorkStationDisabilityCorrection object, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    return _serializeProperties(serializers, object, specifiedType: specifiedType).toList();
+  }
+
+  void _deserializeProperties(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+    required List<Object?> serializedList,
+    required WorkStationDisabilityCorrectionBuilder result,
+    required List<Object?> unhandled,
+  }) {
+    for (var i = 0; i < serializedList.length; i += 2) {
+      final key = serializedList[i] as String;
+      final value = serializedList[i + 1];
+      switch (key) {
+        case r'id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.id = valueDes;
+          break;
+        case r'workstation_id':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(int),
+          ) as int;
+          result.workstationId = valueDes;
+          break;
+        case r'workstation_name':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.workstationName = valueDes;
+          break;
+        case r'reason':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.reason = valueDes;
+          break;
+        case r'start_date':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(Date),
+          ) as Date;
+          result.startDate = valueDes;
+          break;
+        case r'end_date':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(Date),
+          ) as Date?;
+          if (valueDes == null) continue;
+          result.endDate = valueDes;
+          break;
+        case r'disability_type':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(String),
+          ) as String;
+          result.disabilityType = valueDes;
+          break;
+        case r'ignore':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.ignore = valueDes;
+          break;
+        case r'ignore_morning':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.ignoreMorning = valueDes;
+          break;
+        case r'ignore_afternoon':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(bool),
+          ) as bool;
+          result.ignoreAfternoon = valueDes;
+          break;
+        case r'previous_ignore':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.previousIgnore = valueDes;
+          break;
+        case r'previous_ignore_morning':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.previousIgnoreMorning = valueDes;
+          break;
+        case r'previous_ignore_afternoon':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType.nullable(bool),
+          ) as bool?;
+          if (valueDes == null) continue;
+          result.previousIgnoreAfternoon = valueDes;
+          break;
+        case r'time_slots':
+          final valueDes = serializers.deserialize(
+            value,
+            specifiedType: const FullType(BuiltList, [FullType(WorkstationDisabilityTimeSlot)]),
+          ) as BuiltList<WorkstationDisabilityTimeSlot>;
+          result.timeSlots.replace(valueDes);
+          break;
+        default:
+          unhandled.add(key);
+          unhandled.add(value);
+          break;
+      }
+    }
+  }
+
+  @override
+  WorkStationDisabilityCorrection deserialize(
+    Serializers serializers,
+    Object serialized, {
+    FullType specifiedType = FullType.unspecified,
+  }) {
+    final result = WorkStationDisabilityCorrectionBuilder();
+    final serializedList = (serialized as Iterable<Object?>).toList();
+    final unhandled = <Object?>[];
+    _deserializeProperties(
+      serializers,
+      serialized,
+      specifiedType: specifiedType,
+      serializedList: serializedList,
+      unhandled: unhandled,
+      result: result,
+    );
+    return result.build();
+  }
+}
+

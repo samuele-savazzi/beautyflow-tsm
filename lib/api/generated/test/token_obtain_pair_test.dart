@@ -1,0 +1,31 @@
+import 'package:test/test.dart';
+import 'package:beautyflow_api/beautyflow_api.dart';
+
+// tests for TokenObtainPair
+void main() {
+  final instance = TokenObtainPairBuilder();
+  // TODO add properties to the builder and call build()
+
+  group(TokenObtainPair, () {
+    // String username
+    test('to test the property `username`', () async {
+      // TODO
+    });
+
+    // String password
+    test('to test the property `password`', () async {
+      // TODO
+    });
+
+    // String access
+    test('to test the property `access`', () async {
+      // TODO
+    });
+
+    // String refresh
+    test('to test the property `refresh`', () async {
+      // TODO
+    });
+
+  });
+}

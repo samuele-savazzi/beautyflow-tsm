@@ -1,0 +1,30 @@
+# beautyflow_api.model.StepCreate
+
+## Load the model package
+```dart
+import 'package:beautyflow_api/api.dart';
+```
+
+## Properties
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**name** | **String** |  | 
+**description** | **String** |  | 
+**templateId** | **int** |  | 
+**immutable** | **bool** |  | 
+**requiresActiveTime** | **bool** |  | 
+**preparationWorkStation** | **bool** |  | 
+**cleanWorkStation** | **bool** |  | 
+**hasCategories** | **bool** |  | 
+**active** | **bool** |  | 
+**type** | **String** |  | 
+**value** | **String** |  | 
+**categoryGroup** | [**CategoryGroupCreate**](CategoryGroupCreate.md) |  | 
+**icon** | **String** |  | 
+**color** | **String** |  | 
+**bgColor** | **String** |  | 
+**dragId** | **String** |  | 
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)
+
+
