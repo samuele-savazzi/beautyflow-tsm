@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
-import '../../models/admin_user.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/tenant_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../layout/main_layout.dart';
 import 'widgets/tenant_info_tab.dart';
 import 'widgets/tenant_tiers_tab.dart';
+import 'widgets/tenant_payments_tab.dart';
+import 'update_tenant_dialog.dart';
 
 class TenantDetailScreen extends StatefulWidget {
   final int tenantId;
@@ -28,12 +29,20 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
 
     // Load tenant detail
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TenantProvider>().loadTenantDetail(widget.tenantId);
     });
+  }
+
+  void _onTabChanged() {
+    if (_tabController.index == 0 && mounted) {
+      // Tornato su tab Informazioni → ricarica dati
+      context.read<TenantProvider>().loadTenantDetail(widget.tenantId);
+    }
   }
 
   @override
@@ -122,8 +131,15 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
                 if (tenant != null && (user?.canEdit ?? false)) ...[
                   const SizedBox(width: 16),
                   OutlinedButton.icon(
-                    onPressed: () {
-                      // TODO: Navigate to edit tenant screen
+                    onPressed: () async {
+                      final result = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => UpdateTenantDialog(tenant: tenant),
+                      );
+                      // Refresh tenant detail if updated
+                      if (result == true && mounted) {
+                        tenantProvider.loadTenantDetail(widget.tenantId);
+                      }
                     },
                     icon: const Icon(Icons.edit, size: 18),
                     label: const Text('Modifica'),
@@ -144,6 +160,7 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
               tabs: const [
                 Tab(text: 'Informazioni'),
                 Tab(text: 'Tiers'),
+                Tab(text: 'Pagamenti'),
               ],
             ),
           ),
@@ -190,6 +207,7 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
                             children: [
                               TenantInfoTab(tenant: tenant),
                               TenantTiersTab(tenantId: tenant.id),
+                              TenantPaymentsTab(tenant: tenant),
                             ],
                           ),
           ),

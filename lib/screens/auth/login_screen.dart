@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/error_handler.dart';
+import '../../api/services/api_version_manager.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,6 +19,22 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  String _selectedEnvironment = 'production'; // production o staging
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedEnvironment();
+  }
+
+  Future<void> _loadSavedEnvironment() async {
+    final apiVersion = await ApiVersionManager().getApiVersion();
+    if (mounted) {
+      setState(() {
+        _selectedEnvironment = apiVersion;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -32,6 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Salva l'ambiente selezionato prima del login
+      await ApiVersionManager().setApiVersion(_selectedEnvironment);
+
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       await authProvider.login(
@@ -79,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 24),
 
                   const Text(
-                    'BeautyFlow TMS',
+                    'BeautyFlow TSM',
                     style: AppTextStyles.h1,
                     textAlign: TextAlign.center,
                   ),
@@ -90,7 +110,75 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: AppTextStyles.caption,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 32),
+
+                  // Environment Selector
+                  DropdownButtonFormField<String>(
+                    value: _selectedEnvironment,
+                    decoration: const InputDecoration(
+                      labelText: 'Ambiente',
+                      prefixIcon: Icon(Icons.cloud),
+                      helperText: 'Seleziona l\'ambiente da utilizzare',
+                    ),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'production',
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 20),
+                            SizedBox(width: 8),
+                            Text('Production'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'staging',
+                        child: Row(
+                          children: [
+                            Icon(Icons.warning, color: Colors.orange, size: 20),
+                            SizedBox(width: 8),
+                            Text('Staging'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onChanged: _isLoading
+                        ? null
+                        : (value) {
+                            if (value != null) {
+                              setState(() {
+                                _selectedEnvironment = value;
+                              });
+                            }
+                          },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Info Box
+                  if (_selectedEnvironment == 'staging')
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Ambiente di test - I dati non sono in produzione',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  if (_selectedEnvironment == 'staging') const SizedBox(height: 16),
 
                   // Email Field
                   TextFormField(

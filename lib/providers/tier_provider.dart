@@ -54,7 +54,7 @@ class TierProvider with ChangeNotifier {
 
     try {
       final response = await _apiService.dio.get(
-        '${EnvironmentConfig.adminApiPath}/tiers/',
+        '${EnvironmentConfig.adminApiPath}/tiers-list/',
         queryParameters: {
           'page': _currentPage,
           'page_size': _pageSize,
@@ -149,7 +149,7 @@ class TierProvider with ChangeNotifier {
   /// Deactivate tier for tenant
   Future<bool> deactivateTierForTenant({
     required int tenantId,
-    required int tenantTierId,
+    required int tierId,
   }) async {
     _isLoading = true;
     _error = null;
@@ -157,7 +157,7 @@ class TierProvider with ChangeNotifier {
 
     try {
       await _apiService.dio.post(
-        '${EnvironmentConfig.adminApiPath}/tenants/$tenantId/tiers/$tenantTierId/deactivate/',
+        '${EnvironmentConfig.adminApiPath}/tenants/$tenantId/tiers/$tierId/deactivate/',
       );
 
       // Reload tenant tiers

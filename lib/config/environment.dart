@@ -1,16 +1,14 @@
-enum Environment { dev, staging, production }
+import 'package:flutter/foundation.dart';
 
 class EnvironmentConfig {
-  static const Environment current = Environment.dev;
-
+  /// Determina il baseUrl in base al build mode:
+  /// - Debug/Profile: localhost:8000 (sviluppo locale)
+  /// - Release: public.beautyflowhub.it (produzione)
   static String get baseUrl {
-    switch (current) {
-      case Environment.dev:
-        return 'http://localhost:8000';
-      case Environment.staging:
-        return 'https://staging-api.beautyflow.it';
-      case Environment.production:
-        return 'https://api.beautyflow.it';
+    if (kDebugMode || kProfileMode) {
+      return 'http://localhost:8000';
+    } else {
+      return 'https://public.beautyflowhub.it';
     }
   }
 

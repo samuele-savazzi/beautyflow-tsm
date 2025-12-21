@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../layout/main_layout.dart';
 import 'widgets/tenant_card.dart';
+import 'create_tenant/create_tenant_wizard.dart';
 
 class TenantListScreen extends StatefulWidget {
   const TenantListScreen({super.key});
@@ -125,13 +126,16 @@ class _TenantListScreenState extends State<TenantListScreen> {
                 // Create Button (only for admin/commerciale)
                 if (user?.canCreate ?? false)
                   ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: Navigate to Create Tenant Wizard
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Create Tenant in sviluppo...'),
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const CreateTenantWizard(),
                         ),
                       );
+                      // Refresh tenant list after wizard completes
+                      if (mounted) {
+                        tenantProvider.loadTenants(refresh: true);
+                      }
                     },
                     icon: const Icon(Icons.add),
                     label: const Text('Nuovo Tenant'),

@@ -7,7 +7,11 @@ import 'api/services/api_service.dart';
 import 'providers/auth_provider.dart';
 import 'providers/tenant_provider.dart';
 import 'providers/tier_provider.dart';
+import 'providers/quota_type_provider.dart';
+import 'providers/payment_provider.dart';
 import 'providers/navigation_provider.dart';
+import 'providers/dashboard_provider.dart';
+import 'providers/audit_log_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 
 void main() async {
@@ -53,11 +57,23 @@ class MyApp extends StatelessWidget {
           create: (_) => TierProvider(apiService),
         ),
         ChangeNotifierProvider(
+          create: (_) => QuotaTypeProvider(apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PaymentProvider(apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => DashboardProvider(apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => AuditLogProvider(apiService),
+        ),
+        ChangeNotifierProvider(
           create: (_) => NavigationProvider(),
         ),
       ],
       child: MaterialApp(
-        title: 'BeautyFlow TMS',
+        title: 'BeautyFlow TSM',
         theme: AppTheme.theme,
         debugShowCheckedModeBanner: false,
         home: const AuthWrapper(),

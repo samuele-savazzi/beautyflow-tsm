@@ -62,7 +62,7 @@ class SidebarMenu extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'TMS',
+                      'TSM',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -95,36 +95,18 @@ class SidebarMenu extends StatelessWidget {
                   onTap: () => navProvider.navigateTo(AppSection.tenants),
                 ),
 
-                _MenuItem(
-                  icon: Icons.stars,
-                  label: 'Tiers',
-                  section: AppSection.tiers,
-                  isSelected: navProvider.currentSection == AppSection.tiers,
-                  onTap: () => navProvider.navigateTo(AppSection.tiers),
-                ),
-
-                // Admin Management (solo per admin)
-                if (user?.isAdmin ?? false)
-                  _MenuItem(
-                    icon: Icons.admin_panel_settings,
-                    label: 'Admins',
-                    section: AppSection.admins,
-                    isSelected: navProvider.currentSection == AppSection.admins,
-                    onTap: () => navProvider.navigateTo(AppSection.admins),
-                  ),
-
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Divider(),
                 ),
 
-                _MenuItem(
+                /*_MenuItem(
                   icon: Icons.person,
                   label: 'Profilo',
                   section: AppSection.profile,
                   isSelected: navProvider.currentSection == AppSection.profile,
                   onTap: () => navProvider.navigateTo(AppSection.profile),
-                ),
+                ),*/
               ],
             ),
           ),

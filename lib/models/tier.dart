@@ -13,6 +13,8 @@ class Tier {
   final bool hasUsageLimit;
   final int? usageLimit;
   final String? usageUnit;
+  final bool allowTrial;
+  final int? trialDays;
 
   Tier({
     required this.id,
@@ -29,6 +31,8 @@ class Tier {
     required this.hasUsageLimit,
     this.usageLimit,
     this.usageUnit,
+    required this.allowTrial,
+    this.trialDays,
   });
 
   factory Tier.fromJson(Map<String, dynamic> json) {
@@ -36,7 +40,7 @@ class Tier {
       id: json['id'],
       name: json['name'],
       code: json['code'],
-      slug: json['slug'],
+      slug: json['slug'] ?? '',
       category: json['category'],
       description: json['description'] ?? '',
       icon: json['icon'] ?? 'star',
@@ -47,6 +51,8 @@ class Tier {
       hasUsageLimit: json['has_usage_limit'] ?? false,
       usageLimit: json['usage_limit'],
       usageUnit: json['usage_unit'],
+      allowTrial: json['allow_trial'] ?? false,
+      trialDays: json['trial_days'],
     );
   }
 
@@ -66,6 +72,8 @@ class Tier {
       'has_usage_limit': hasUsageLimit,
       'usage_limit': usageLimit,
       'usage_unit': usageUnit,
+      'allow_trial': allowTrial,
+      'trial_days': trialDays,
     };
   }
 }
@@ -102,7 +110,7 @@ class TenantTier {
   factory TenantTier.fromJson(Map<String, dynamic> json) {
     return TenantTier(
       id: json['id'],
-      tenantId: json['tenant_id'],
+      tenantId: json['tenant'],
       tier: Tier.fromJson(json['tier']),
       isActive: json['is_active'] ?? false,
       isTrial: json['is_trial'] ?? false,
@@ -114,7 +122,7 @@ class TenantTier {
       nextBillingDate: json['next_billing_date'],
       usageCount: json['usage_count'] ?? 0,
       usageLimit: json['usage_limit'],
-      canUse: json['can_use'] ?? true,
+      canUse: (json['can_use'])['allowed'] ?? true,
     );
   }
 

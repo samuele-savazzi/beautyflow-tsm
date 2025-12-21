@@ -29,7 +29,21 @@ class AuthProvider with ChangeNotifier {
   List<String>? get backupCodes => _backupCodes;
 
   AuthProvider(this._apiService) {
+    // Registra callback per gestire token scaduto
+    _apiService.setTokenExpiredCallback(() {
+      _handleTokenExpired();
+    });
+
     _checkAuthStatus();
+  }
+
+  /// Chiamato quando il refresh token fallisce
+  void _handleTokenExpired() {
+    _status = AuthStatus.unauthenticated;
+    _currentUser = null;
+    _tempToken = null;
+    _backupCodes = null;
+    notifyListeners();
   }
 
   Future<void> _checkAuthStatus() async {
@@ -50,8 +64,12 @@ class AuthProvider with ChangeNotifier {
         _status = AuthStatus.unauthenticated;
       }
     } catch (_) {
-      // Token invalido, logout
+      // Token invalido o refresh fallito, logout completo
+      await _apiService.logout();
       _status = AuthStatus.unauthenticated;
+      _currentUser = null;
+      _tempToken = null;
+      _backupCodes = null;
     }
 
     notifyListeners();

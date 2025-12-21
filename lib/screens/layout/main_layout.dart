@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../config/theme.dart';
 import '../../providers/auth_provider.dart';
+import '../../api/services/api_version_manager.dart';
 import 'sidebar_menu.dart';
 
 class MainLayout extends StatelessWidget {
@@ -47,6 +48,51 @@ class MainLayout extends StatelessWidget {
                       Text(
                         title,
                         style: AppTextStyles.h3,
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Environment Badge
+                      FutureBuilder<String>(
+                        future: ApiVersionManager().getApiVersion(),
+                        builder: (context, snapshot) {
+                          final env = snapshot.data ?? 'production';
+                          final isStaging = env == 'staging';
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isStaging
+                                  ? Colors.orange.withOpacity(0.2)
+                                  : Colors.green.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: isStaging ? Colors.orange : Colors.green,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  isStaging ? Icons.warning : Icons.check_circle,
+                                  size: 14,
+                                  color: isStaging ? Colors.orange : Colors.green,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  isStaging ? 'STAGING' : 'PRODUCTION',
+                                  style: TextStyle(
+                                    color: isStaging ? Colors.orange : Colors.green,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
                       const Spacer(),
 

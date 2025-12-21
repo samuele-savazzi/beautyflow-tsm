@@ -1,10 +1,17 @@
 import 'package:dio/dio.dart';
 import '../../config/environment.dart';
 import 'token_storage.dart';
+import 'api_version_manager.dart';
 
 class ApiService {
   late final Dio _dio;
   final TokenStorage _storage = TokenStorage();
+
+  // Callback chiamata quando il refresh token fallisce
+  void Function()? _onTokenExpired;
+
+  // Flag per prevenire loop infiniti di refresh
+  bool _isRefreshing = false;
 
   // Singleton pattern
   static final ApiService _instance = ApiService._internal();
@@ -27,14 +34,27 @@ class ApiService {
 
   Dio get dio => _dio;
 
-  // Auth Interceptor - Auto-inject JWT token
+  /// Registra callback da chiamare quando il token è scaduto e il refresh fallisce
+  void setTokenExpiredCallback(void Function() callback) {
+    _onTokenExpired = callback;
+  }
+
+  // Auth Interceptor - Auto-inject JWT token + API Version header
   InterceptorsWrapper _authInterceptor() {
     return InterceptorsWrapper(
       onRequest: (options, handler) async {
+        // JWT token
         final accessToken = await _storage.read(key: 'access_token');
         if (accessToken != null) {
           options.headers['Authorization'] = 'Bearer $accessToken';
         }
+
+        // API Version header (solo se staging)
+        final apiVersion = await ApiVersionManager().getApiVersion();
+        if (apiVersion == 'staging') {
+          options.headers['X-API-Version'] = 'staging';
+        }
+
         return handler.next(options);
       },
     );
@@ -45,9 +65,21 @@ class ApiService {
     return InterceptorsWrapper(
       onError: (DioException error, handler) async {
         if (error.response?.statusCode == 401) {
+          // Non tentare refresh se la richiesta è già per il refresh endpoint
+          if (error.requestOptions.path.contains('/auth/refresh/')) {
+            return handler.next(error);
+          }
+
+          // Evita loop infiniti di refresh
+          if (_isRefreshing) {
+            return handler.reject(error);
+          }
+
           // Token expired, try to refresh
+          _isRefreshing = true;
           try {
             await refreshToken();
+            _isRefreshing = false;
 
             // Retry the original request
             final options = Options(
@@ -64,8 +96,16 @@ class ApiService {
 
             return handler.resolve(response);
           } catch (e) {
-            // Refresh failed, user needs to login again
+            _isRefreshing = false;
+
+            // Refresh failed, cancella credenziali e notifica l'app
             await logout();
+
+            // Chiama callback per navigare alla login
+            if (_onTokenExpired != null) {
+              _onTokenExpired!();
+            }
+
             return handler.reject(error);
           }
         }

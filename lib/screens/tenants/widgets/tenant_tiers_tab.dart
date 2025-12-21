@@ -5,6 +5,8 @@ import '../../../config/theme.dart';
 import '../../../providers/tier_provider.dart';
 import '../../../providers/auth_provider.dart';
 import 'quota_widget.dart';
+import 'activate_tier_dialog.dart';
+import 'reactivate_tier_dialog.dart';
 
 class TenantTiersTab extends StatefulWidget {
   final int tenantId;
@@ -91,13 +93,27 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
               const Spacer(),
               if (user?.canCreate ?? false)
                 ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Navigate to Activate Tier screen
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Attiva Tier in sviluppo...'),
+                  onPressed: () async {
+                    // Ottieni IDs tier già attivi (solo quelli con isActive=true)
+                    final activeTierIds = tiers?.where((t) => t.isActive).map((t) => t.tier.id).toList() ?? [];
+
+                    final result = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => ActivateTierDialog(
+                        tenantId: widget.tenantId,
+                        tenantName: 'Tenant #${widget.tenantId}',
+                        activeTierIds: activeTierIds,
                       ),
                     );
+
+                    if (result == true && mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Tier attivato con successo'),
+                          backgroundColor: AppColors.success,
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.add),
                   label: const Text('Attiva Tier'),
@@ -180,7 +196,7 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
     // Access tier info from tenantTier.tier
     final tier = tenantTier.tier;
     final isActive = tenantTier.isActive;
-    final activatedOn = tenantTier.activatedOn;
+    final activatedOn = tenantTier.activatedAt;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -277,15 +293,35 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
             const Divider(),
             const SizedBox(height: 16),
 
-            // Quota Information
-            if (tenantTier.maxQuota != null) ...[
-              QuotaWidget(
-                currentUsage: tenantTier.currentUsage ?? 0,
-                maxQuota: tenantTier.maxQuota!,
-                label: tier.name,
-              ),
-              const SizedBox(height: 16),
-            ],
+            // Usage Information
+            Row(
+              children: [
+                Icon(
+                  Icons.analytics_outlined,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'Utilizzi: ${tenantTier.usageCount}${tenantTier.usageLimit != null ? '/${tenantTier.usageLimit}' : ''}',
+                  style: AppTextStyles.caption,
+                ),
+                if (tenantTier.usageLimit != null) ...[
+                  const SizedBox(width: 16),
+                  Icon(
+                    Icons.trending_up,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${tenantTier.usagePercentage.toStringAsFixed(1)}%',
+                    style: AppTextStyles.caption,
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
 
             // Details Row
             Row(
@@ -304,7 +340,7 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
                 ],
                 const Spacer(),
 
-                // Deactivate Button
+                // Deactivate Button (tier attivi)
                 if (isActive && (user?.canEdit ?? false))
                   TextButton.icon(
                     onPressed: () => _showDeactivateConfirmation(
@@ -316,6 +352,21 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
                     label: const Text('Disattiva'),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.error,
+                    ),
+                  ),
+
+                // Reactivate Button (tier inattivi)
+                if (!isActive && (user?.canEdit ?? false))
+                  ElevatedButton.icon(
+                    onPressed: () => _showReactivateConfirmation(
+                      context,
+                      tenantTier,
+                      tier.name,
+                    ),
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Riattiva'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
                     ),
                   ),
               ],
@@ -348,7 +399,7 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
               Navigator.pop(context);
               final success = await context.read<TierProvider>().deactivateTierForTenant(
                     tenantId: widget.tenantId,
-                    tenantTierId: tenantTier.id,
+                    tierId: tenantTier.tier.id,
                   );
 
               if (context.mounted) {
@@ -376,6 +427,31 @@ class _TenantTiersTabState extends State<TenantTiersTab> {
         ],
       ),
     );
+  }
+
+  void _showReactivateConfirmation(
+    BuildContext context,
+    dynamic tenantTier,
+    String tierName,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => ReactivateTierDialog(
+        tenantId: widget.tenantId,
+        tenantName: 'Tenant #${widget.tenantId}',
+        tier: tenantTier.tier,
+      ),
+    );
+
+    if (result == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Tier riattivato con successo'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+      context.read<TierProvider>().loadTenantTiers(widget.tenantId);
+    }
   }
 
   String _formatDate(DateTime dateTime) {
