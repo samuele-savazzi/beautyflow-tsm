@@ -1,5 +1,10 @@
 import 'area_request.dart';
 import 'theme_request.dart';
+import 'complete_theme_request.dart';
+import 'theme_gradients.dart';
+import 'theme_metadata.dart';
+import 'theme_settings.dart';
+import '../utils/color_utils.dart';
 
 /// Request per creazione tenant
 class CreateTenantRequest {

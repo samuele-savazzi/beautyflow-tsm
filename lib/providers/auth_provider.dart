@@ -124,10 +124,11 @@ class AuthProvider with ChangeNotifier {
       }
 
       notifyListeners();
-    } on DioException {
-      _status = AuthStatus.unauthenticated;
-      notifyListeners();
-      rethrow;
+    }  on Exception catch (e) {
+        print('Errore: $e');
+        _status = AuthStatus.unauthenticated;
+        notifyListeners();
+        rethrow;
     }
   }
 

@@ -1,11 +1,18 @@
+import 'dart:convert';
+import 'dart:io' as io;
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import '../models/tenant.dart';
 import '../models/paginated_response.dart';
 import '../models/create_tenant_request.dart';
 import '../models/create_tenant_response.dart';
+import '../models/complete_theme_request.dart';
+import '../models/theme_gradients.dart';
+import '../models/theme_metadata.dart';
+import '../models/theme_settings.dart';
 import '../api/services/api_service.dart';
 import '../config/environment.dart';
+import '../utils/color_utils.dart';
 
 class TenantProvider with ChangeNotifier {
   final ApiService _apiService;
@@ -190,6 +197,148 @@ class TenantProvider with ChangeNotifier {
     }
   }
 
+  /// Create new tenant with files (logo, dark_logo, favicon)
+  /// This method expands the simple theme colors to the complete theme structure
+  /// matching the React ThemeEditor format, and includes base64-encoded files
+  Future<CreateTenantResponse?> createTenantWithFiles({
+    required CreateTenantRequest request,
+    required String logoFilePath,
+    required String darkLogoFilePath,
+    required String faviconFilePath,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Read files as base64
+      final logoBytes = await io.File(logoFilePath).readAsBytes();
+      final darkLogoBytes = await io.File(darkLogoFilePath).readAsBytes();
+      final faviconBytes = await io.File(faviconFilePath).readAsBytes();
+
+      // Generate complete theme from simple colors
+      final completeTheme = _generateCompleteTheme(request);
+
+      // Build final JSON payload
+      final payload = {
+        'name': request.name,
+        'domain': request.domain,
+        'type': request.type,
+        'admin_email': request.adminEmail,
+        'admin_phone': request.adminPhone,
+        'admin_first_name': request.adminFirstName,
+        'admin_last_name': request.adminLastName,
+        'quota_type_code': request.quotaTypeCode,
+        'billing_type': request.billingType,
+        'billing_duration': request.billingDuration,
+        'areas': request.areas.map((a) => a.toJson()).toList(),
+        if (request.registeredOffice != null)
+          'registered_office': request.registeredOffice,
+        'theme': completeTheme.toJson(), // Complete expanded theme
+        'logo': base64Encode(logoBytes),
+        'dark_logo': base64Encode(darkLogoBytes),
+        'favicon': base64Encode(faviconBytes),
+        if (request.apiVersion != null) 'api_version': request.apiVersion,
+      };
+
+      // Send as pure JSON with complete theme and base64 files
+      final response = await _apiService.dio.post(
+        '${EnvironmentConfig.adminApiPath}/tenants/',
+        data: payload,
+        options: Options(
+          receiveTimeout: const Duration(minutes: 10),
+        ),
+      );
+
+      // Parse response
+      final createResponse = CreateTenantResponse.fromJson(response.data);
+
+      // Reload list after creation
+      await loadTenants(refresh: true);
+
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+
+      return createResponse;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Generate complete theme structure from simple base colors
+  /// This mirrors the React ThemeEditor's theme generation logic
+  CompleteThemeRequest _generateCompleteTheme(CreateTenantRequest request) {
+    if (request.theme == null) {
+      throw Exception('Theme is required for tenant creation');
+    }
+
+    final simpleColors = request.theme!;
+
+    // Expand simple colors to complete color palettes
+    final lightColors = ColorUtils.mapSimpleToCompleteColors(simpleColors, isDark: false);
+    final darkColors = ColorUtils.mapSimpleToCompleteColors(simpleColors, isDark: true);
+
+    // Generate gradients
+    final gradients = ThemeGradients(
+      primary: GradientConfig(
+        main: simpleColors.primary,
+        light: ColorUtils.hexToRgba(simpleColors.primary, 0.8),
+        state: ColorUtils.hexToRgba(simpleColors.primary, 1.2),
+      ),
+      secondary: GradientConfig(
+        main: simpleColors.secondary,
+        light: ColorUtils.hexToRgba(simpleColors.secondary, 0.8),
+        state: ColorUtils.hexToRgba(simpleColors.secondary, 1.2),
+      ),
+    );
+
+    // Create complete theme
+    final theme = CompleteTheme(
+      dark: darkColors,
+      light: lightColors,
+      gradients: gradients,
+      navbarText: lightColors.navbarText,
+      brandAccent: ColorUtils.hexToRgba(simpleColors.primary, 0.8),
+      sidebarText: lightColors.sidebarText,
+      brandPrimary: simpleColors.primary,
+      sidebarActive: lightColors.sidebarActive,
+      brandSecondary: simpleColors.secondary,
+      buttonPrimaryBg: lightColors.buttonPrimaryBg,
+      loginBackground: lightColors.loginBackground,
+      navbarBackground: lightColors.navbarBackground,
+      sidebarBackground: lightColors.sidebarBackground,
+      loginBoxBackground: lightColors.loginBoxBackground,
+    );
+
+    // Create metadata
+    final metadata = ThemeMetadata(
+      clientId: 'beautyflow-tsm',
+      themeName: 'Custom Theme',
+      lastUpdated: DateTime.now().toIso8601String(),
+      themeVersion: '2.1',
+      supportedModes: ['light', 'dark'],
+      isCustomTheme: true,
+      hasCustomDarkColors: false,
+    );
+
+    // Create settings
+    final settings = ThemeSettings(
+      darkModeDefault: false,
+      allowDarkModeToggle: true,
+      autoDetectSystemTheme: false,
+    );
+
+    return CompleteThemeRequest(
+      theme: theme,
+      metadata: metadata,
+      settings: settings,
+    );
+  }
+
   /// Update tenant
   Future<bool> updateTenant(int tenantId, Map<String, dynamic> tenantData) async {
     _isLoading = true;
@@ -232,29 +381,28 @@ class TenantProvider with ChangeNotifier {
     String uploadType,
   ) async {
     try {
-      // Determine the form field name and endpoint based on upload type
-      String fieldName;
+      // Determine endpoint and response key based on upload type
       String endpoint;
       String responseKey;
 
       switch (uploadType) {
         case 'favicon':
-          fieldName = 'favicon';
           endpoint = '${EnvironmentConfig.adminApiPath}/tenants/upload-favicon/';
-          responseKey = 'favicon_url';
+          responseKey = 'image_url';
           break;
         case 'dark_logo':
-          fieldName = 'dark_logo';
           endpoint = '${EnvironmentConfig.adminApiPath}/tenants/upload-dark-logo/';
-          responseKey = 'dark_logo_url';
+          responseKey = 'image_url'; // Django response usa 'image_url' per tutti
           break;
         case 'logo':
         default:
-          fieldName = 'logo';
           endpoint = '${EnvironmentConfig.adminApiPath}/tenants/upload-logo/';
-          responseKey = 'logo_url';
+          responseKey = 'image_url'; // Django response usa 'image_url' per tutti
           break;
       }
+
+      // Django si aspetta sempre il campo 'image' per logo/dark_logo, 'favicon' per favicon
+      final fieldName = 'image';
 
       final formData = FormData.fromMap({
         'tenant_id': tenantId,

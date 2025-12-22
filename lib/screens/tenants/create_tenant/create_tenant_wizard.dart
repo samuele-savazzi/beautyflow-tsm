@@ -12,6 +12,7 @@ import '../../../utils/error_handler.dart';
 import '../../../api/services/api_version_manager.dart';
 import 'widgets/step_indicator.dart';
 import 'steps/tenant_info_step.dart';
+import 'steps/logo_step.dart';
 import 'steps/quota_billing_step.dart';
 import 'steps/areas_step.dart';
 import 'steps/theme_step.dart';
@@ -28,7 +29,7 @@ class CreateTenantWizard extends StatefulWidget {
 
 class _CreateTenantWizardState extends State<CreateTenantWizard> {
   int _currentStep = 1;
-  final int _totalSteps = 5;
+  final int _totalSteps = 6; // Aggiunto step Logo
 
   // Form data
   String _name = '';
@@ -38,6 +39,9 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
   String _adminPhone = '';
   String _adminFirstName = '';
   String _adminLastName = '';
+  String? _logoPath; // NUOVO
+  String? _darkLogoPath; // NUOVO
+  String? _faviconPath; // NUOVO (obbligatoria)
   String _quotaTypeCode = 'BASIC';
   String _billingType = 'trial';
   int _billingDuration = 1;
@@ -47,6 +51,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
 
   final List<String> _stepTitles = [
     'Info Base',
+    'Logo',
     'Quota & Billing',
     'Aree',
     'Theme',
@@ -101,6 +106,19 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
   }
 
   void _updateStep2Data({
+    required String logoPath,
+    required String darkLogoPath,
+    required String faviconPath,
+  }) {
+    setState(() {
+      _logoPath = logoPath;
+      _darkLogoPath = darkLogoPath;
+      _faviconPath = faviconPath;
+    });
+    _nextStep();
+  }
+
+  void _updateStep3Data({
     required String quotaTypeCode,
     required String billingType,
     required int billingDuration,
@@ -113,7 +131,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
     _nextStep();
   }
 
-  void _updateStep3Data({
+  void _updateStep4Data({
     required List<AreaRequest> areas,
   }) {
     setState(() {
@@ -122,7 +140,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
     _nextStep();
   }
 
-  void _updateStep4Data({
+  void _updateStep5Data({
     required ThemeRequest theme,
     String? registeredOffice,
   }) {
@@ -134,6 +152,17 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
   }
 
   Future<void> _submitTenant() async {
+    // Validazione loghi obbligatori
+    if (_logoPath == null || _darkLogoPath == null || _faviconPath == null) {
+      if (mounted) {
+        ApiErrorHandler.showErrorMessage(
+          context,
+          'Logo, Dark Logo e Favicon sono obbligatori',
+        );
+      }
+      return;
+    }
+
     // Leggi l'api_version corrente
     final apiVersion = await ApiVersionManager().getApiVersion();
 
@@ -156,7 +185,12 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
 
     try {
       final tenantProvider = context.read<TenantProvider>();
-      final response = await tenantProvider.createTenantWithResponse(request);
+      final response = await tenantProvider.createTenantWithFiles(
+        request: request,
+        logoFilePath: _logoPath!,
+        darkLogoFilePath: _darkLogoPath!,
+        faviconFilePath: _faviconPath!,
+      );
 
       if (response != null && mounted) {
         // Navigate to success screen
@@ -194,25 +228,32 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
           onNext: _updateStep1Data,
         );
       case 2:
+        return LogoStep(
+          initialLogoPath: _logoPath,
+          initialDarkLogoPath: _darkLogoPath,
+          initialFaviconPath: _faviconPath,
+          onNext: _updateStep2Data,
+        );
+      case 3:
         return QuotaBillingStep(
           initialQuotaTypeCode: _quotaTypeCode,
           initialBillingType: _billingType,
           initialBillingDuration: _billingDuration,
-          onNext: _updateStep2Data,
-        );
-      case 3:
-        return AreasStep(
-          tenantName: _name,
-          initialAreas: _areas,
           onNext: _updateStep3Data,
         );
       case 4:
-        return ThemeStep(
-          initialTheme: _theme,
-          initialRegisteredOffice: _registeredOffice,
+        return AreasStep(
+          tenantName: _name,
+          initialAreas: _areas,
           onNext: _updateStep4Data,
         );
       case 5:
+        return ThemeStep(
+          initialTheme: _theme,
+          initialRegisteredOffice: _registeredOffice,
+          onNext: _updateStep5Data,
+        );
+      case 6:
         return ConfirmationStep(
           name: _name,
           domain: _domain,
