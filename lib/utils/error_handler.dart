@@ -51,7 +51,8 @@ class ApiErrorHandler {
         return 'Richiesta non valida';
 
       case 401:
-        return data?['error'] ?? data?['detail'] ?? 'Non autorizzato. Effettua nuovamente il login.';
+        return _messageFromBody(data) ??
+            'Non autorizzato. Effettua nuovamente il login.';
 
       case 403:
         if (data is Map<String, dynamic>) {
@@ -65,10 +66,10 @@ class ApiErrorHandler {
         return 'Accesso negato. Permessi insufficienti.';
 
       case 404:
-        return data?['error'] ?? data?['detail'] ?? 'Risorsa non trovata';
+        return _messageFromBody(data) ?? 'Risorsa non trovata';
 
       case 409:
-        return data?['error'] ?? data?['detail'] ?? 'Conflitto. La risorsa esiste già.';
+        return _messageFromBody(data) ?? 'Conflitto. La risorsa esiste già.';
 
       case 500:
         return 'Errore del server. Riprova più tardi.';
@@ -90,6 +91,21 @@ class ApiErrorHandler {
         }
         return 'Errore imprevisto ($statusCode)';
     }
+  }
+
+  /// Estrae 'error' o 'detail' dal body, solo se il body e' davvero una mappa.
+  ///
+  /// Serve perche' non tutte le risposte d'errore sono JSON: un 404 su una
+  /// rotta inesistente arriva come pagina HTML di Django, un 502 come testo
+  /// del proxy. Prima si faceva `data?['error']` diretto e su una String
+  /// l'operatore [] pretende un int: l'app crashava invece di mostrare
+  /// l'errore.
+  static String? _messageFromBody(dynamic data) {
+    if (data is Map) {
+      final value = data['error'] ?? data['detail'];
+      if (value != null) return value.toString();
+    }
+    return null;
   }
 
   /// Formatta nome campo (snake_case -> Titolo)
