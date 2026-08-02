@@ -10,6 +10,7 @@ import '../../../models/operator_detail.dart';
 import 'upload_logo_widget.dart';
 import 'create_area_dialog.dart';
 import 'edit_area_limit_dialog.dart';
+import 'edit_area_workstation_limit_dialog.dart';
 import 'edit_area_location_dialog.dart';
 import 'edit_operator_limit_dialog.dart';
 
@@ -550,6 +551,34 @@ class TenantInfoTab extends StatelessWidget {
                     ],
                   ),
                 ),
+                const SizedBox(width: 6),
+                // Limite postazioni della sede (distinto da quello per operatore)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: area.currentWorkstations >= area.maxWorkstations
+                        ? AppColors.error.withOpacity(0.1)
+                        : AppColors.success.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${area.currentWorkstations}/${area.maxWorkstations}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: area.currentWorkstations >= area.maxWorkstations
+                              ? AppColors.error
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.chair_outlined, size: 12),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 8),
                 // Edit button
                 IconButton(
@@ -559,6 +588,15 @@ class TenantInfoTab extends StatelessWidget {
                   constraints: const BoxConstraints(),
                   onPressed: () => _showEditAreaLimitDialog(context, area),
                   tooltip: 'Modifica limite operatori',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chair_outlined, size: 16),
+                  iconSize: 16,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () =>
+                      _showEditAreaWorkstationLimitDialog(context, area),
+                  tooltip: 'Modifica limite postazioni',
                 ),
                 IconButton(
                   icon: const Icon(Icons.place_outlined, size: 16),
@@ -903,6 +941,26 @@ class TenantInfoTab extends StatelessWidget {
     final result = await showDialog<bool>(
       context: context,
       builder: (_) => EditAreaLimitDialog(
+        tenantId: tenant.id,
+        area: area,
+      ),
+    );
+
+    // Reload tenant detail after dialog closes if successful
+    if (result == true && context.mounted) {
+      await tenantProvider.loadTenantDetail(tenant.id);
+    }
+  }
+
+  void _showEditAreaWorkstationLimitDialog(
+    BuildContext context,
+    AreaDetail area,
+  ) async {
+    final tenantProvider = context.read<TenantProvider>();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => EditAreaWorkstationLimitDialog(
         tenantId: tenant.id,
         area: area,
       ),

@@ -9,6 +9,11 @@ class QuotaType {
   final int? includedSms;
   final int? includedOperatorsPerArea;
   final int? includedWorkstationsPerOperator;
+
+  /// Postazioni creabili per sede. Limite distinto da
+  /// [includedWorkstationsPerOperator]: quello dice a quante postazioni un
+  /// operatore puo' essere assegnato, questo quante ne esistono nella sede.
+  final int? includedWorkstationsPerArea;
   final String? monthlyPrice;
   final String? yearlyPrice;
   final String? currency;
@@ -29,6 +34,7 @@ class QuotaType {
     this.includedSms,
     this.includedOperatorsPerArea,
     this.includedWorkstationsPerOperator,
+    this.includedWorkstationsPerArea,
     this.monthlyPrice,
     this.yearlyPrice,
     this.currency,
@@ -51,6 +57,7 @@ class QuotaType {
       includedSms: json['included_sms'],
       includedOperatorsPerArea: json['included_operators_per_area'],
       includedWorkstationsPerOperator: json['included_workstations_per_operator'],
+      includedWorkstationsPerArea: json['included_workstations_per_area'],
       monthlyPrice: json['monthly_price'],
       yearlyPrice: json['yearly_price'],
       currency: json['currency'],
@@ -245,6 +252,8 @@ extension QuotaTypeExtension on QuotaType {
         'included_operators_per_area': includedOperatorsPerArea,
       if (includedWorkstationsPerOperator != null)
         'included_workstations_per_operator': includedWorkstationsPerOperator,
+      if (includedWorkstationsPerArea != null)
+        'included_workstations_per_area': includedWorkstationsPerArea,
       if (monthlyPrice != null) 'monthly_price': monthlyPrice,
       if (yearlyPrice != null) 'yearly_price': yearlyPrice,
       if (currency != null) 'currency': currency,

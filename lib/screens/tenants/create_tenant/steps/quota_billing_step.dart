@@ -227,10 +227,15 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                                     Icons.people,
                                     '${quotaType.includedOperatorsPerArea} operatori/area',
                                   ),
+                                if (quotaType.includedWorkstationsPerArea != null)
+                                  _buildFeature(
+                                    Icons.chair_outlined,
+                                    '${quotaType.includedWorkstationsPerArea} postazioni/sede',
+                                  ),
                                 if (quotaType.includedWorkstationsPerOperator != null)
                                   _buildFeature(
                                     Icons.chair,
-                                    '${quotaType.includedWorkstationsPerOperator} workstation',
+                                    '${quotaType.includedWorkstationsPerOperator} postazioni/operatore',
                                   ),
                               ],
                             ),

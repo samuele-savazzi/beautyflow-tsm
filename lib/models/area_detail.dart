@@ -7,6 +7,14 @@ class AreaDetail {
   final int maxOperators;
   final int currentOperators;
   final bool isCustomLimit;
+
+  // Quota postazioni della sede: quante se ne possono creare in totale.
+  // Da non confondere con OperatorDetail.maxWorkstations, che limita le
+  // postazioni ASSEGNABILI al singolo operatore.
+  final int maxWorkstations;
+  final int currentWorkstations;
+  final bool isCustomWorkstationLimit;
+
   final List<OperatorDetail> operators;
 
   // Localizzazione. Tutti nullable: una sede si compila anche a piu' riprese
@@ -32,6 +40,9 @@ class AreaDetail {
     required this.maxOperators,
     required this.currentOperators,
     required this.isCustomLimit,
+    required this.maxWorkstations,
+    required this.currentWorkstations,
+    required this.isCustomWorkstationLimit,
     required this.operators,
     this.street,
     this.streetNumber,
@@ -62,6 +73,9 @@ class AreaDetail {
       maxOperators: json['max_operators'] ?? 1,
       currentOperators: json['current_operators'] ?? 0,
       isCustomLimit: json['is_custom_limit'] ?? false,
+      maxWorkstations: json['max_workstations'] ?? 0,
+      currentWorkstations: json['current_workstations'] ?? 0,
+      isCustomWorkstationLimit: json['is_custom_workstation_limit'] ?? false,
       operators: (json['operators'] as List<dynamic>?)
               ?.map((op) => OperatorDetail.fromJson(op as Map<String, dynamic>))
               .toList() ??
@@ -86,6 +100,9 @@ class AreaDetail {
       'max_operators': maxOperators,
       'current_operators': currentOperators,
       'is_custom_limit': isCustomLimit,
+      'max_workstations': maxWorkstations,
+      'current_workstations': currentWorkstations,
+      'is_custom_workstation_limit': isCustomWorkstationLimit,
       'operators': operators.map((op) => op.toJson()).toList(),
       'street': street,
       'street_number': streetNumber,
@@ -106,6 +123,9 @@ class AreaDetail {
     int? maxOperators,
     int? currentOperators,
     bool? isCustomLimit,
+    int? maxWorkstations,
+    int? currentWorkstations,
+    bool? isCustomWorkstationLimit,
     List<OperatorDetail>? operators,
     String? street,
     String? streetNumber,
@@ -124,6 +144,10 @@ class AreaDetail {
       maxOperators: maxOperators ?? this.maxOperators,
       currentOperators: currentOperators ?? this.currentOperators,
       isCustomLimit: isCustomLimit ?? this.isCustomLimit,
+      maxWorkstations: maxWorkstations ?? this.maxWorkstations,
+      currentWorkstations: currentWorkstations ?? this.currentWorkstations,
+      isCustomWorkstationLimit:
+          isCustomWorkstationLimit ?? this.isCustomWorkstationLimit,
       operators: operators ?? this.operators,
       street: street ?? this.street,
       streetNumber: streetNumber ?? this.streetNumber,

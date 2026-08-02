@@ -439,6 +439,28 @@ class TenantProvider with ChangeNotifier {
     }
   }
 
+  /// Update area workstation limit.
+  /// Gemello di [updateAreaQuotaLimit]: quello limita gli operatori della sede,
+  /// questo le postazioni creabili al suo interno.
+  Future<bool> updateAreaWorkstationQuotaLimit(
+    int tenantId,
+    int areaId,
+    int maxWorkstations,
+  ) async {
+    try {
+      await _apiService.dio.put(
+        '${EnvironmentConfig.adminApiPath}/tenants/$tenantId/areas/$areaId/workstation-quota/',
+        data: {'max_workstations': maxWorkstations},
+      );
+
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Crea una nuova sede nel tenant.
   /// Il backend replica il setup della creazione tenant: orari chiusi sui 7
   /// giorni, collegamento agli admin del tenant, config reminder.
