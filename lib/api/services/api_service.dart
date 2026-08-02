@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import '../../config/environment.dart';
 import 'token_storage.dart';
@@ -10,8 +12,10 @@ class ApiService {
   // Callback chiamata quando il refresh token fallisce
   void Function()? _onTokenExpired;
 
-  // Flag per prevenire loop infiniti di refresh
-  bool _isRefreshing = false;
+  // Refresh in corso: le altre richieste che prendono 401 si accodano qui
+  // invece di fallire. La pagina dei tenant lancia piu' chiamate insieme e
+  // prima la prima rinnovava il token mentre le altre venivano rifiutate.
+  Completer<void>? _refreshCompleter;
 
   // Singleton pattern
   static final ApiService _instance = ApiService._internal();
@@ -70,43 +74,30 @@ class ApiService {
             return handler.next(error);
           }
 
-          // Evita loop infiniti di refresh
-          if (_isRefreshing) {
+          try {
+            await _ensureRefreshed();
+          } catch (_) {
+            // Refresh fallito: credenziali non piu' recuperabili.
+            await logout();
+            _onTokenExpired?.call();
             return handler.reject(error);
           }
 
-          // Token expired, try to refresh
-          _isRefreshing = true;
           try {
-            await refreshToken();
-            _isRefreshing = false;
-
-            // Retry the original request
-            final options = Options(
-              method: error.requestOptions.method,
-              headers: error.requestOptions.headers,
-            );
-
+            // Il retry ripassa dall'auth interceptor, che sovrascrive
+            // l'header Authorization con il token appena rinnovato.
             final response = await _dio.request(
               error.requestOptions.path,
-              options: options,
+              options: Options(
+                method: error.requestOptions.method,
+                headers: error.requestOptions.headers,
+              ),
               data: error.requestOptions.data,
               queryParameters: error.requestOptions.queryParameters,
             );
-
             return handler.resolve(response);
-          } catch (e) {
-            _isRefreshing = false;
-
-            // Refresh failed, cancella credenziali e notifica l'app
-            await logout();
-
-            // Chiama callback per navigare alla login
-            if (_onTokenExpired != null) {
-              _onTokenExpired!();
-            }
-
-            return handler.reject(error);
+          } on DioException catch (retryError) {
+            return handler.reject(retryError);
           }
         }
 
@@ -130,6 +121,28 @@ class ApiService {
 
   Future<String?> getRefreshToken() async {
     return await _storage.read(key: 'refresh_token');
+  }
+
+  /// Garantisce un solo refresh in volo: chi arriva dopo aspetta lo stesso
+  /// esito invece di lanciarne un altro. Con ROTATE_REFRESH_TOKENS e
+  /// BLACKLIST_AFTER_ROTATION lato backend, due refresh paralleli
+  /// invaliderebbero a vicenda il token appena emesso.
+  Future<void> _ensureRefreshed() {
+    final inFlight = _refreshCompleter;
+    if (inFlight != null) return inFlight.future;
+
+    final completer = Completer<void>();
+    _refreshCompleter = completer;
+
+    refreshToken().then((_) {
+      _refreshCompleter = null;
+      completer.complete();
+    }).catchError((e) {
+      _refreshCompleter = null;
+      completer.completeError(e);
+    });
+
+    return completer.future;
   }
 
   Future<void> refreshToken() async {

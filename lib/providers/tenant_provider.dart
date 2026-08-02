@@ -439,6 +439,47 @@ class TenantProvider with ChangeNotifier {
     }
   }
 
+  /// Crea una nuova sede nel tenant.
+  /// Il backend replica il setup della creazione tenant: orari chiusi sui 7
+  /// giorni, collegamento agli admin del tenant, config reminder.
+  Future<bool> createArea(
+    int tenantId, {
+    required String name,
+    Map<String, dynamic>? location,
+  }) async {
+    try {
+      await _apiService.dio.post(
+        '${EnvironmentConfig.adminApiPath}/tenants/$tenantId/areas/',
+        data: {'name': name, ...?location},
+      );
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  /// Aggiorna indirizzo e coordinate di una sede.
+  /// Campo assente = non toccato, null = azzerato.
+  Future<bool> updateAreaLocation(
+    int tenantId,
+    int areaId,
+    Map<String, dynamic> location,
+  ) async {
+    try {
+      await _apiService.dio.put(
+        '${EnvironmentConfig.adminApiPath}/tenants/$tenantId/areas/$areaId/location/',
+        data: location,
+      );
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
   /// Update operator workstation limit
   Future<bool> updateOperatorQuotaLimit(
     int tenantId,

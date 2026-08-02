@@ -8,7 +8,9 @@ import '../../../providers/tenant_provider.dart';
 import '../../../models/area_detail.dart';
 import '../../../models/operator_detail.dart';
 import 'upload_logo_widget.dart';
+import 'create_area_dialog.dart';
 import 'edit_area_limit_dialog.dart';
+import 'edit_area_location_dialog.dart';
 import 'edit_operator_limit_dialog.dart';
 
 class TenantInfoTab extends StatelessWidget {
@@ -459,15 +461,29 @@ class TenantInfoTab extends StatelessWidget {
           ),
 
           // Areas and Operators
-          if (tenant.areas.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            _buildSection(
-              title: 'Aree e Operatori',
-              children: [
-                ...tenant.areas.map((area) => _buildAreaCard(context, area)),
-              ],
-            ),
-          ],
+          const SizedBox(height: 24),
+          _buildSection(
+            title: 'Sedi e Operatori',
+            children: [
+              if (tenant.areas.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'Nessuna sede configurata.',
+                    style: AppTextStyles.caption,
+                  ),
+                ),
+              ...tenant.areas.map((area) => _buildAreaCard(context, area)),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showCreateAreaDialog(context),
+                  icon: const Icon(Icons.add_location_alt_outlined, size: 18),
+                  label: const Text('Aggiungi sede'),
+                ),
+              ),
+            ],
+          ),
         ],
         ),
       ),
@@ -544,6 +560,55 @@ class TenantInfoTab extends StatelessWidget {
                   onPressed: () => _showEditAreaLimitDialog(context, area),
                   tooltip: 'Modifica limite operatori',
                 ),
+                IconButton(
+                  icon: const Icon(Icons.place_outlined, size: 16),
+                  iconSize: 16,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                  onPressed: () => _showEditAreaLocationDialog(context, area),
+                  tooltip: 'Modifica indirizzo',
+                ),
+              ],
+            ),
+          ),
+
+          // Indirizzo: e' cio' che il cliente vede scegliendo dove prenotare,
+          // quindi va evidenziato quando manca.
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.place_outlined,
+                  size: 14,
+                  color: area.fullAddress != null
+                      ? AppColors.textSecondary
+                      : AppColors.warning,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    area.fullAddress ?? 'Indirizzo non impostato',
+                    style: AppTextStyles.caption.copyWith(
+                      color: area.fullAddress != null
+                          ? AppColors.textSecondary
+                          : AppColors.warning,
+                      fontStyle: area.fullAddress != null
+                          ? FontStyle.normal
+                          : FontStyle.italic,
+                    ),
+                  ),
+                ),
+                if (area.hasCoordinates)
+                  Tooltip(
+                    message: '${area.latitude}, ${area.longitude}',
+                    child: const Icon(
+                      Icons.my_location,
+                      size: 14,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -844,6 +909,38 @@ class TenantInfoTab extends StatelessWidget {
     );
 
     // Reload tenant detail after dialog closes if successful
+    if (result == true && context.mounted) {
+      await tenantProvider.loadTenantDetail(tenant.id);
+    }
+  }
+
+  void _showEditAreaLocationDialog(BuildContext context, AreaDetail area) async {
+    final tenantProvider = context.read<TenantProvider>();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => EditAreaLocationDialog(
+        tenantId: tenant.id,
+        area: area,
+      ),
+    );
+
+    if (result == true && context.mounted) {
+      await tenantProvider.loadTenantDetail(tenant.id);
+    }
+  }
+
+  void _showCreateAreaDialog(BuildContext context) async {
+    final tenantProvider = context.read<TenantProvider>();
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => CreateAreaDialog(
+        tenantId: tenant.id,
+        tenantName: tenant.name,
+      ),
+    );
+
     if (result == true && context.mounted) {
       await tenantProvider.loadTenantDetail(tenant.id);
     }
