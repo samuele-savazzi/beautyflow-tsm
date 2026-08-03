@@ -60,6 +60,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
   final _billingCity = TextEditingController();
   final _billingProvince = TextEditingController();
   String? _billingError;
+  String? _contractError;
 
   @override
   void initState() {
@@ -103,6 +104,24 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
   }
 
   void _handleNext() {
+    // Interruttore acceso ma nessuna voce di listino applicabile: il tenant
+    // nascerebbe senza contratto e senza che nessuno lo dica. Niente rate,
+    // niente fatture, e la copertura si ferma al `billing_type` iniziale.
+    if (_createContract && _contractItem == null) {
+      final hasPriceList =
+          context.read<BillingProvider>().priceListDetail != null;
+      setState(
+        () => _contractError = hasPriceList
+            ? 'Il piano selezionato non ha opzioni di pagamento nel listino '
+                  'attivo: scegli un piano a listino, oppure disattiva '
+                  '"Sottoscrivi subito un contratto"'
+            : 'Nessun listino attivo: attivane uno, oppure disattiva '
+                  '"Sottoscrivi subito un contratto"',
+      );
+      return;
+    }
+    setState(() => _contractError = null);
+
     final contractConfig = _buildContractConfig();
 
     // Con un contratto attivo ma senza ragione sociale le rate nascono e la
@@ -384,6 +403,10 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
           title: const Text('Sottoscrivi subito un contratto'),
           contentPadding: EdgeInsets.zero,
         ),
+        if (_contractError != null) ...[
+          Text(_contractError!, style: const TextStyle(color: AppColors.error)),
+          const SizedBox(height: 8),
+        ],
         if (_createContract) ...[
           if (priceList == null)
             const Padding(
