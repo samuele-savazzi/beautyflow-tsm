@@ -39,6 +39,10 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
   // Contratto commerciale (facoltativo: si può creare anche dopo, dalla
   // scheda del tenant)
   bool _createContract = true;
+  // Impegno e rateizzazione si scelgono dentro il piano gia' selezionato:
+  // _contractItem e' la voce di listino che ne risulta, non una scelta a se'.
+  int? _commitmentMonths;
+  int? _installmentCount;
   PriceListItem? _contractItem;
   int? _salespersonId;
   DateTime _contractStart = DateTime.now();
@@ -75,7 +79,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
       if (billing.priceLists.isNotEmpty) {
         await billing.loadPriceListDetail(billing.priceLists.first.id);
       }
-      if (mounted) setState(() {});
+      if (mounted) setState(_syncContractOptions);
     });
   }
 
@@ -139,6 +143,65 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
       'city': _billingCity.text.trim(),
       'province': _billingProvince.text.trim().toUpperCase(),
     };
+  }
+
+  /// Voci di listino del piano selezionato.
+  ///
+  /// Le opzioni di pagamento appartengono al piano: impegno e rate che il
+  /// listino non prevede per quel piano non devono nemmeno comparire.
+  List<PriceListItem> _itemsForPlan(String quotaTypeCode) {
+    final items =
+        context.read<BillingProvider>().priceListDetail?.items ??
+        const <PriceListItem>[];
+    return items
+        .where(
+          (item) =>
+              item.itemKind == 'plan' &&
+              item.isActive &&
+              item.quotaTypeCode == quotaTypeCode,
+        )
+        .toList();
+  }
+
+  List<int> _commitmentsOf(List<PriceListItem> items) {
+    final months = items.map((item) => item.commitmentMonths).toSet().toList()
+      ..sort();
+    return months;
+  }
+
+  List<PriceListItem> _installmentsOf(List<PriceListItem> items, int? months) {
+    final options = items
+        .where((item) => item.commitmentMonths == months)
+        .toList();
+    options.sort((a, b) => a.installmentCount.compareTo(b.installmentCount));
+    return options;
+  }
+
+  /// Riallinea impegno e rate al piano corrente, tenendo la scelta dell'utente
+  /// quando il nuovo piano la prevede. Da chiamare dentro `setState`.
+  void _syncContractOptions() {
+    final items = _itemsForPlan(_selectedQuotaType);
+    if (items.isEmpty) {
+      _commitmentMonths = null;
+      _installmentCount = null;
+      _contractItem = null;
+      return;
+    }
+
+    final commitments = _commitmentsOf(items);
+    if (!commitments.contains(_commitmentMonths)) {
+      // L'annuale e' l'impegno piu' comune: e' un default onesto, non una
+      // scelta implicita a favore dell'impegno piu' lungo.
+      _commitmentMonths = commitments.contains(12) ? 12 : commitments.first;
+    }
+
+    final options = _installmentsOf(items, _commitmentMonths);
+    if (!options.any((item) => item.installmentCount == _installmentCount)) {
+      _installmentCount = options.first.installmentCount;
+    }
+    _contractItem = options.firstWhere(
+      (item) => item.installmentCount == _installmentCount,
+    );
   }
 
   String _getPrice(QuotaTypeProvider provider) {
@@ -249,12 +312,55 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     );
   }
 
+  /// Cosa comporta davvero l'opzione scelta: importi imponibili, IVA e rate.
+  /// I prezzi di listino sono IVA esclusa, la fattura la aggiunge.
+  Widget _buildContractRecap(PriceListItem item, double vatRate) {
+    final annualWithVat = item.annualTotal * (1 + vatRate / 100);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '€${item.annualTotal.toStringAsFixed(2)}/anno + IVA '
+            '${vatRate.toStringAsFixed(0)}% = '
+            '€${annualWithVat.toStringAsFixed(2)}',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          if (item.installmentCount > 1) ...[
+            const SizedBox(height: 4),
+            Text(
+              '${item.installmentCount} rate da '
+              '€${item.installmentAmount.toStringAsFixed(2)} imponibili; '
+              'l\'ultima assorbe l\'arrotondamento',
+              style: AppTextStyles.caption,
+            ),
+          ],
+          if (item.setupFee > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Attivazione una tantum €${item.setupFee.toStringAsFixed(2)}, '
+              'sulla prima rata',
+              style: AppTextStyles.caption,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildContractSection() {
     final billing = context.watch<BillingProvider>();
     final priceList = billing.priceListDetail;
-    final planItems =
-        priceList?.items.where((item) => item.itemKind == 'plan').toList() ??
-        [];
+    final planItems = _itemsForPlan(_selectedQuotaType);
+    final commitments = _commitmentsOf(planItems);
+    final installmentOptions = _installmentsOf(planItems, _commitmentMonths);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,7 +377,10 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
         const SizedBox(height: 12),
         SwitchListTile(
           value: _createContract,
-          onChanged: (value) => setState(() => _createContract = value),
+          onChanged: (value) => setState(() {
+            _createContract = value;
+            if (value) _syncContractOptions();
+          }),
           title: const Text('Sottoscrivi subito un contratto'),
           contentPadding: EdgeInsets.zero,
         ),
@@ -284,35 +393,60 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                 style: TextStyle(color: AppColors.error),
               ),
             )
-          else ...[
-            DropdownButtonFormField<PriceListItem>(
-              initialValue: _contractItem,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Piano, impegno e rate *',
-                border: OutlineInputBorder(),
+          else if (planItems.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Il piano selezionato non è a listino in "${priceList.name}": '
+                'scegli un piano a listino, oppure non sottoscrivere ora il '
+                'contratto.',
+                style: const TextStyle(color: AppColors.error),
               ),
-              items: planItems
-                  .map(
-                    (item) => DropdownMenuItem(
-                      value: item,
-                      child: Text(
-                        '${item.label} · ${item.commitmentLabel} · '
-                        '${item.installmentLabel} · '
-                        '€${item.annualTotal.toStringAsFixed(2)}/anno',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) => setState(() {
-                _contractItem = value;
-                // Il piano del contratto è la fonte di verità: allinea la quota
-                if (value?.quotaTypeCode != null) {
-                  _selectedQuotaType = value!.quotaTypeCode!;
-                }
-              }),
+            )
+          else ...[
+            const Text('Impegno', style: AppTextStyles.caption),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: commitments.map((months) {
+                final sample = planItems.firstWhere(
+                  (item) => item.commitmentMonths == months,
+                );
+                return ChoiceChip(
+                  label: Text(sample.commitmentLabel),
+                  selected: _commitmentMonths == months,
+                  onSelected: (_) => setState(() {
+                    _commitmentMonths = months;
+                    _syncContractOptions();
+                  }),
+                );
+              }).toList(),
             ),
+            const SizedBox(height: 20),
+            const Text('Rateizzazione', style: AppTextStyles.caption),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: installmentOptions.map((item) {
+                return ChoiceChip(
+                  label: Text(
+                    '${item.installmentLabel} · '
+                    '€${item.installmentAmount.toStringAsFixed(2)}',
+                  ),
+                  selected: _installmentCount == item.installmentCount,
+                  onSelected: (_) => setState(() {
+                    _installmentCount = item.installmentCount;
+                    _syncContractOptions();
+                  }),
+                );
+              }).toList(),
+            ),
+            if (_contractItem != null) ...[
+              const SizedBox(height: 16),
+              _buildContractRecap(_contractItem!, priceList.vatRate),
+            ],
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               initialValue: _salespersonId,
@@ -402,6 +536,8 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
       );
     }
 
+    final contractItem = _createContract ? _contractItem : null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -421,6 +557,12 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
 
           ...quotaTypes.map((quotaType) {
             final isSelected = _selectedQuotaType == quotaType.code;
+            // Un piano fuori listino non ha opzioni di pagamento: meglio
+            // dirlo sulla card che lasciar scoprire la sezione vuota sotto.
+            final notInPriceList =
+                _createContract &&
+                context.read<BillingProvider>().priceListDetail != null &&
+                _itemsForPlan(quotaType.code).isEmpty;
 
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
@@ -428,6 +570,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                 onTap: () {
                   setState(() {
                     _selectedQuotaType = quotaType.code;
+                    _syncContractOptions();
                   });
                 },
                 borderRadius: BorderRadius.circular(12),
@@ -505,6 +648,17 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                                 style: AppTextStyles.caption,
                               ),
                             ],
+                            if (notInPriceList) ...[
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Non presente nel listino attivo: non si può '
+                                'sottoscrivere un contratto',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.warning,
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: 12),
                             // Features
                             Wrap(
@@ -551,6 +705,15 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
 
           // Billing Type
           const Text('Tipo di Fatturazione', style: AppTextStyles.body),
+          const SizedBox(height: 4),
+          Text(
+            _createContract
+                ? 'Copertura iniziale del tenant: da lì in poi la scadenza la '
+                      'spostano le rate del contratto man mano che vengono '
+                      'incassate'
+                : 'Fino a quando il tenant resta attivo senza un contratto',
+            style: AppTextStyles.caption,
+          ),
           const SizedBox(height: 16),
 
           _buildBillingTypeOption(
@@ -596,10 +759,20 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Prezzo', style: AppTextStyles.caption),
+                    Text(
+                      contractItem != null
+                          ? 'Prezzo di contratto (IVA esclusa)'
+                          : 'Prezzo',
+                      style: AppTextStyles.caption,
+                    ),
                     const SizedBox(height: 4),
                     Text(
-                      _getPrice(quotaTypeProvider),
+                      // Col contratto vale il listino, non i prezzi storici
+                      // sulla scheda del piano: mostrarne due sarebbe peggio
+                      // che mostrarne uno solo.
+                      contractItem != null
+                          ? '€${contractItem.annualTotal.toStringAsFixed(2)}/anno'
+                          : _getPrice(quotaTypeProvider),
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -608,7 +781,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                     ),
                   ],
                 ),
-                if (_selectedBillingType == 'yearly')
+                if (contractItem == null && _selectedBillingType == 'yearly')
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
