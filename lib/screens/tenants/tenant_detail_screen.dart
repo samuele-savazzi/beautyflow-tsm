@@ -8,6 +8,7 @@ import '../layout/main_layout.dart';
 import 'widgets/tenant_info_tab.dart';
 import 'widgets/tenant_tiers_tab.dart';
 import 'widgets/tenant_payments_tab.dart';
+import 'widgets/tenant_billing_tab.dart';
 import 'update_tenant_dialog.dart';
 
 class TenantDetailScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(_onTabChanged);
 
     // Load tenant detail
@@ -161,6 +162,7 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
                 Tab(text: 'Informazioni'),
                 Tab(text: 'Tiers'),
                 Tab(text: 'Pagamenti'),
+                Tab(text: 'Contratti & Fatturazione'),
               ],
             ),
           ),
@@ -208,6 +210,7 @@ class _TenantDetailScreenState extends State<TenantDetailScreen>
                               TenantInfoTab(tenant: tenant),
                               TenantTiersTab(tenantId: tenant.id),
                               TenantPaymentsTab(tenant: tenant),
+                              TenantBillingTab(tenant: tenant),
                             ],
                           ),
           ),

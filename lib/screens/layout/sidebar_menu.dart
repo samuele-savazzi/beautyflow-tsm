@@ -100,6 +100,124 @@ class SidebarMenu extends StatelessWidget {
                   child: Divider(),
                 ),
 
+                // ----- Commerciale: admin e commerciale -----
+                const _SectionLabel('Commerciale'),
+
+                _MenuItem(
+                  icon: Icons.description,
+                  label: 'Contratti',
+                  section: AppSection.contracts,
+                  isSelected: navProvider.currentSection == AppSection.contracts,
+                  onTap: () => navProvider.navigateTo(AppSection.contracts),
+                ),
+
+                _MenuItem(
+                  icon: Icons.event_available,
+                  label: 'Scadenzario',
+                  section: AppSection.installments,
+                  isSelected:
+                      navProvider.currentSection == AppSection.installments,
+                  onTap: () => navProvider.navigateTo(AppSection.installments),
+                ),
+
+                _MenuItem(
+                  icon: Icons.receipt_long,
+                  label: 'Fatture',
+                  section: AppSection.invoices,
+                  isSelected: navProvider.currentSection == AppSection.invoices,
+                  onTap: () => navProvider.navigateTo(AppSection.invoices),
+                ),
+
+                _MenuItem(
+                  icon: Icons.handshake,
+                  label: 'Provvigioni',
+                  section: AppSection.commissions,
+                  isSelected:
+                      navProvider.currentSection == AppSection.commissions,
+                  onTap: () => navProvider.navigateTo(AppSection.commissions),
+                ),
+
+                // ----- Amministrazione: solo admin -----
+                // Il backend risponde comunque 403 al commerciale, ma non ha
+                // senso mostrargli voci su cui non può entrare
+                if (user?.isAdmin ?? false) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Divider(),
+                  ),
+                  const _SectionLabel('Amministrazione'),
+
+                  _MenuItem(
+                    icon: Icons.query_stats,
+                    label: 'Andamento',
+                    section: AppSection.financeDashboard,
+                    isSelected: navProvider.currentSection ==
+                        AppSection.financeDashboard,
+                    onTap: () =>
+                        navProvider.navigateTo(AppSection.financeDashboard),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.payments,
+                    label: 'Costi',
+                    section: AppSection.expenses,
+                    isSelected: navProvider.currentSection == AppSection.expenses,
+                    onTap: () => navProvider.navigateTo(AppSection.expenses),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.account_balance_wallet,
+                    label: 'Liquidità',
+                    section: AppSection.cash,
+                    isSelected: navProvider.currentSection == AppSection.cash,
+                    onTap: () => navProvider.navigateTo(AppSection.cash),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.account_balance,
+                    label: 'IVA e imposte',
+                    section: AppSection.vat,
+                    isSelected: navProvider.currentSection == AppSection.vat,
+                    onTap: () => navProvider.navigateTo(AppSection.vat),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.insights,
+                    label: 'Conto economico',
+                    section: AppSection.reports,
+                    isSelected: navProvider.currentSection == AppSection.reports,
+                    onTap: () => navProvider.navigateTo(AppSection.reports),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.sell,
+                    label: 'Listini',
+                    section: AppSection.priceLists,
+                    isSelected:
+                        navProvider.currentSection == AppSection.priceLists,
+                    onTap: () => navProvider.navigateTo(AppSection.priceLists),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.badge,
+                    label: 'Commerciali',
+                    section: AppSection.salespeople,
+                    isSelected:
+                        navProvider.currentSection == AppSection.salespeople,
+                    onTap: () => navProvider.navigateTo(AppSection.salespeople),
+                  ),
+
+                  _MenuItem(
+                    icon: Icons.settings_suggest,
+                    label: 'Impostazioni fiscali',
+                    section: AppSection.fiscalSettings,
+                    isSelected:
+                        navProvider.currentSection == AppSection.fiscalSettings,
+                    onTap: () =>
+                        navProvider.navigateTo(AppSection.fiscalSettings),
+                  ),
+                ],
+
                 /*_MenuItem(
                   icon: Icons.person,
                   label: 'Profilo',
@@ -213,6 +331,29 @@ class _MenuItem extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Intestazione di gruppo nel menu laterale.
+class _SectionLabel extends StatelessWidget {
+  final String label;
+
+  const _SectionLabel(this.label);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 8, 16, 4),
+      child: Text(
+        label.toUpperCase(),
+        style: TextStyle(
+          fontSize: 11,
+          letterSpacing: 0.8,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary,
         ),
       ),
     );

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../config/theme.dart';
 import '../../../../providers/quota_type_provider.dart';
+import '../../../../providers/billing_provider.dart';
+import '../../../../models/billing_models.dart';
 
 /// Step 2: Quota & Billing
 class QuotaBillingStep extends StatefulWidget {
@@ -12,6 +14,7 @@ class QuotaBillingStep extends StatefulWidget {
     required String quotaTypeCode,
     required String billingType,
     required int billingDuration,
+    Map<String, dynamic>? contractConfig,
   }) onNext;
 
   const QuotaBillingStep({
@@ -31,6 +34,13 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
   late String _selectedBillingType;
   late int _billingDuration;
 
+  // Contratto commerciale (facoltativo: si può creare anche dopo, dalla
+  // scheda del tenant)
+  bool _createContract = true;
+  PriceListItem? _contractItem;
+  int? _salespersonId;
+  DateTime _contractStart = DateTime.now();
+
   @override
   void initState() {
     super.initState();
@@ -39,8 +49,17 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     _billingDuration = widget.initialBillingDuration;
 
     // Load quota types when widget initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<QuotaTypeProvider>().loadQuotaTypes(isActive: true);
+
+      final billing = context.read<BillingProvider>();
+      await billing.loadPriceLists(status: 'active');
+      await billing.loadSalespeople(onlyActive: true);
+      if (!mounted) return;
+      if (billing.priceLists.isNotEmpty) {
+        await billing.loadPriceListDetail(billing.priceLists.first.id);
+      }
+      if (mounted) setState(() {});
     });
   }
 
@@ -49,6 +68,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
       quotaTypeCode: _selectedQuotaType,
       billingType: _selectedBillingType,
       billingDuration: _billingDuration,
+      contractConfig: _buildContractConfig(),
     );
   }
 
@@ -63,6 +83,146 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     } else {
       return '€${quotaType.yearlyPrice ?? '0.00'}/anno';
     }
+  }
+
+
+  /// Configurazione del contratto da creare subito dopo il tenant.
+  /// Null se il contratto non è stato richiesto o non è stata scelta una voce
+  /// di listino: in quel caso il tenant nasce comunque, e il contratto si crea
+  /// più tardi dalla sua scheda.
+  Map<String, dynamic>? _buildContractConfig() {
+    if (!_createContract || _contractItem == null) return null;
+    final billing = context.read<BillingProvider>();
+    final priceList = billing.priceListDetail;
+    if (priceList == null) return null;
+
+    return {
+      'price_list_id': priceList.id,
+      'quota_type_id': _contractItem!.quotaTypeId,
+      'commitment_months': _contractItem!.commitmentMonths,
+      'installment_count': _contractItem!.installmentCount,
+      'start_date':
+          '${_contractStart.year.toString().padLeft(4, '0')}-'
+          '${_contractStart.month.toString().padLeft(2, '0')}-'
+          '${_contractStart.day.toString().padLeft(2, '0')}',
+      // Il commerciale non è obbligatorio: senza, il contratto semplicemente
+      // non genera provvigioni
+      if (_salespersonId != null) 'salesperson_id': _salespersonId,
+      'apply_quota': true,
+      'lines': [
+        {'price_list_item_id': _contractItem!.id, 'quantity': 1},
+      ],
+    };
+  }
+
+  Widget _buildContractSection() {
+    final billing = context.watch<BillingProvider>();
+    final priceList = billing.priceListDetail;
+    final planItems =
+        priceList?.items.where((item) => item.itemKind == 'plan').toList() ?? [];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        const Divider(),
+        const SizedBox(height: 24),
+        const Text('Contratto commerciale', style: AppTextStyles.body),
+        const SizedBox(height: 4),
+        const Text(
+          'Facoltativo: si può sottoscrivere anche dopo, dalla scheda del tenant',
+          style: AppTextStyles.caption,
+        ),
+        const SizedBox(height: 12),
+        SwitchListTile(
+          value: _createContract,
+          onChanged: (value) => setState(() => _createContract = value),
+          title: const Text('Sottoscrivi subito un contratto'),
+          contentPadding: EdgeInsets.zero,
+        ),
+        if (_createContract) ...[
+          if (priceList == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Nessun listino attivo: attivane uno per poter creare contratti',
+                style: TextStyle(color: AppColors.error),
+              ),
+            )
+          else ...[
+            DropdownButtonFormField<PriceListItem>(
+              initialValue: _contractItem,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Piano, impegno e rate *',
+                border: OutlineInputBorder(),
+              ),
+              items: planItems
+                  .map((item) => DropdownMenuItem(
+                        value: item,
+                        child: Text(
+                          '${item.label} · ${item.commitmentLabel} · '
+                          '${item.installmentLabel} · '
+                          '€${item.annualTotal.toStringAsFixed(2)}/anno',
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ))
+                  .toList(),
+              onChanged: (value) => setState(() {
+                _contractItem = value;
+                // Il piano del contratto è la fonte di verità: allinea la quota
+                if (value?.quotaTypeCode != null) {
+                  _selectedQuotaType = value!.quotaTypeCode!;
+                }
+              }),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<int>(
+              initialValue: _salespersonId,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: 'Commerciale',
+                helperText:
+                    'Facoltativo: senza commerciale non maturano provvigioni',
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                const DropdownMenuItem<int>(
+                  value: null,
+                  child: Text('Nessuno (vendita diretta)'),
+                ),
+                ...billing.salespeople.map((person) => DropdownMenuItem(
+                    value: person.id, child: Text(person.fullName))),
+              ],
+              onChanged: (value) => setState(() => _salespersonId = value),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: _contractStart,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2100),
+                );
+                if (picked != null) setState(() => _contractStart = picked);
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Decorrenza',
+                  border: OutlineInputBorder(),
+                ),
+                child: Text(
+                  '${_contractStart.day.toString().padLeft(2, '0')}/'
+                  '${_contractStart.month.toString().padLeft(2, '0')}/'
+                  '${_contractStart.year}',
+                ),
+              ),
+            ),
+          ],
+        ],
+      ],
+    );
   }
 
   @override
@@ -282,6 +442,8 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
           ),
 
           const SizedBox(height: 32),
+
+          _buildContractSection(),
 
           // Price Preview
           Container(

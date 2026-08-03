@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../config/theme.dart';
 import '../../../config/predefined_themes.dart';
 import '../../../providers/tenant_provider.dart';
+import '../../../providers/billing_provider.dart';
 import '../../../models/create_tenant_request.dart';
 import '../../../models/create_tenant_response.dart';
 import '../../../models/area_request.dart';
@@ -45,6 +46,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
   String _quotaTypeCode = 'BASIC';
   String _billingType = 'trial';
   int _billingDuration = 1;
+  Map<String, dynamic>? _contractConfig;
   List<AreaRequest> _areas = [];
   String? _registeredOffice;
   late ThemeRequest _theme; // Non più opzionale
@@ -122,11 +124,13 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
     required String quotaTypeCode,
     required String billingType,
     required int billingDuration,
+    Map<String, dynamic>? contractConfig,
   }) {
     setState(() {
       _quotaTypeCode = quotaTypeCode;
       _billingType = billingType;
       _billingDuration = billingDuration;
+      _contractConfig = contractConfig;
     });
     _nextStep();
   }
@@ -185,6 +189,8 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
 
     try {
       final tenantProvider = context.read<TenantProvider>();
+      // Preso prima dell'await: dopo, il context potrebbe non essere piu' valido
+      final billingProvider = context.read<BillingProvider>();
       final response = await tenantProvider.createTenantWithFiles(
         request: request,
         logoFilePath: _logoPath!,
@@ -193,6 +199,24 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
       );
 
       if (response != null && mounted) {
+        // Il contratto si crea DOPO il tenant e non deve poterlo far fallire:
+        // se qualcosa va storto lo si sottoscrive dalla scheda del tenant
+        if (_contractConfig != null) {
+          final contract = await billingProvider.createContract(
+            response.tenant.id,
+            _contractConfig!,
+          );
+          if (contract == null && mounted) {
+            ApiErrorHandler.showErrorMessage(
+              context,
+              'Tenant creato, ma il contratto non è stato registrato: '
+              '${billingProvider.error ?? 'errore sconosciuto'}. '
+              'Puoi sottoscriverlo dalla scheda del tenant.',
+            );
+          }
+        }
+        if (!mounted) return;
+
         // Navigate to success screen
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(

@@ -12,6 +12,8 @@ import 'providers/payment_provider.dart';
 import 'providers/navigation_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/audit_log_provider.dart';
+import 'providers/billing_provider.dart';
+import 'providers/finance_provider.dart';
 import 'screens/auth/auth_wrapper.dart';
 
 void main() async {
@@ -70,6 +72,13 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => NavigationProvider(),
+        ),
+        // Amministrazione (backend: app internal_billing)
+        ChangeNotifierProvider(
+          create: (_) => BillingProvider(apiService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FinanceProvider(apiService),
         ),
       ],
       child: MaterialApp(
