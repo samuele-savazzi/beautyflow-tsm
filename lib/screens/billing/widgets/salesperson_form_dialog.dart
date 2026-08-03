@@ -39,18 +39,24 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
       'vat_number': TextEditingController(text: person?.vatNumber ?? ''),
       'fiscal_code': TextEditingController(text: person?.fiscalCode ?? ''),
       'iban': TextEditingController(text: person?.iban ?? ''),
-      'vat_rate':
-          TextEditingController(text: (person?.vatRate ?? 22).toStringAsFixed(2)),
+      'vat_rate': TextEditingController(
+        text: (person?.vatRate ?? 22).toStringAsFixed(2),
+      ),
       'withholding_rate': TextEditingController(
-          text: (person?.withholdingRate ?? 23).toStringAsFixed(2)),
+        text: (person?.withholdingRate ?? 23).toStringAsFixed(2),
+      ),
       'withholding_base_percent': TextEditingController(
-          text: (person?.withholdingBasePercent ?? 50).toStringAsFixed(2)),
+        text: (person?.withholdingBasePercent ?? 50).toStringAsFixed(2),
+      ),
       'enasarco_agent_rate': TextEditingController(
-          text: (person?.enasarcoAgentRate ?? 0).toStringAsFixed(2)),
+        text: (person?.enasarcoAgentRate ?? 0).toStringAsFixed(2),
+      ),
       'enasarco_company_rate': TextEditingController(
-          text: (person?.enasarcoCompanyRate ?? 0).toStringAsFixed(2)),
+        text: (person?.enasarcoCompanyRate ?? 0).toStringAsFixed(2),
+      ),
       'payment_terms_days': TextEditingController(
-          text: '${person?.paymentTermsDays ?? 30}'),
+        text: '${person?.paymentTermsDays ?? 30}',
+      ),
     };
 
     if (person != null) {
@@ -75,7 +81,8 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
   Map<String, double> get _preview {
     const base = 1000.0;
     final vat = _appliesVat ? base * _number('vat_rate') / 100 : 0.0;
-    final withholding = base *
+    final withholding =
+        base *
         _number('withholding_base_percent') /
         100 *
         _number('withholding_rate') /
@@ -109,11 +116,13 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
       'applies_vat': _appliesVat,
       'vat_rate': _number('vat_rate').toStringAsFixed(2),
       'withholding_rate': _number('withholding_rate').toStringAsFixed(2),
-      'withholding_base_percent':
-          _number('withholding_base_percent').toStringAsFixed(2),
+      'withholding_base_percent': _number(
+        'withholding_base_percent',
+      ).toStringAsFixed(2),
       'enasarco_agent_rate': _number('enasarco_agent_rate').toStringAsFixed(2),
-      'enasarco_company_rate':
-          _number('enasarco_company_rate').toStringAsFixed(2),
+      'enasarco_company_rate': _number(
+        'enasarco_company_rate',
+      ).toStringAsFixed(2),
       'is_active': _isActive,
     });
   }
@@ -123,9 +132,11 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
     final preview = _preview;
 
     return AlertDialog(
-      title: Text(widget.salesperson == null
-          ? 'Nuovo commerciale'
-          : 'Modifica commerciale'),
+      title: Text(
+        widget.salesperson == null
+            ? 'Nuovo commerciale'
+            : 'Modifica commerciale',
+      ),
       content: SizedBox(
         width: 620,
         child: Form(
@@ -143,18 +154,26 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
                       child: DropdownButtonFormField<String>(
                         initialValue: _contractType,
                         decoration: const InputDecoration(
-                            labelText: 'Tipo rapporto',
-                            border: OutlineInputBorder()),
+                          labelText: 'Tipo rapporto',
+                          border: OutlineInputBorder(),
+                        ),
                         items: const [
                           DropdownMenuItem(
-                              value: 'agent', child: Text('Agente di commercio')),
+                            value: 'agent',
+                            child: Text('Agente di commercio'),
+                          ),
                           DropdownMenuItem(
-                              value: 'procacciatore',
-                              child: Text('Procacciatore')),
+                            value: 'procacciatore',
+                            child: Text('Procacciatore'),
+                          ),
                           DropdownMenuItem(
-                              value: 'employee', child: Text('Dipendente')),
+                            value: 'employee',
+                            child: Text('Dipendente'),
+                          ),
                           DropdownMenuItem(
-                              value: 'occasional', child: Text('Occasionale')),
+                            value: 'occasional',
+                            child: Text('Occasionale'),
+                          ),
                         ],
                         onChanged: (value) =>
                             setState(() => _contractType = value ?? 'agent'),
@@ -166,10 +185,12 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
                 Row(
                   children: [
                     Expanded(
-                        child: _field('first_name', 'Nome *', required: true)),
+                      child: _field('first_name', 'Nome *', required: true),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: _field('last_name', 'Cognome *', required: true)),
+                      child: _field('last_name', 'Cognome *', required: true),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -196,12 +217,15 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
                     Expanded(flex: 2, child: _field('iban', 'IBAN')),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: _field('payment_terms_days', 'Termini (gg)')),
+                      child: _field('payment_terms_days', 'Termini (gg)'),
+                    ),
                   ],
                 ),
                 const Divider(height: 32),
-                const Text('Fiscalità delle provvigioni',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Fiscalità delle provvigioni',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 SwitchListTile(
                   value: _appliesVat,
@@ -214,24 +238,33 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
                     Expanded(child: _numberField('vat_rate', 'IVA %')),
                     const SizedBox(width: 12),
                     Expanded(
-                        child:
-                            _numberField('withholding_rate', 'Ritenuta %')),
+                      child: _numberField('withholding_rate', 'Ritenuta %'),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: _numberField(
-                            'withholding_base_percent', 'Base ritenuta %')),
+                      child: _numberField(
+                        'withholding_base_percent',
+                        'Base ritenuta %',
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                        child: _numberField(
-                            'enasarco_agent_rate', 'Enasarco agente %')),
+                      child: _numberField(
+                        'enasarco_agent_rate',
+                        'Enasarco agente %',
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: _numberField(
-                            'enasarco_company_rate', 'Enasarco ditta %')),
+                      child: _numberField(
+                        'enasarco_company_rate',
+                        'Enasarco ditta %',
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -250,8 +283,9 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla')),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annulla'),
+        ),
         FilledButton(onPressed: _submit, child: const Text('Salva')),
       ],
     );
@@ -265,8 +299,10 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Su 1.000 € di provvigione maturata',
-                style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text(
+              'Su 1.000 € di provvigione maturata',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
             const SizedBox(height: 8),
             _previewRow('IVA', preview['vat']!),
             _previewRow('Ritenuta d\'acconto', -preview['withholding']!),
@@ -287,12 +323,18 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(
-                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-          Text(_currency.format(value),
-              style: TextStyle(
-                  fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            _currency.format(value),
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
@@ -301,11 +343,13 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
   Widget _field(String key, String label, {bool required = false}) {
     return TextFormField(
       controller: _controllers[key],
-      decoration:
-          InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
       validator: required
           ? (value) =>
-              (value == null || value.trim().isEmpty) ? 'Obbligatorio' : null
+                (value == null || value.trim().isEmpty) ? 'Obbligatorio' : null
           : null,
     );
   }
@@ -314,8 +358,10 @@ class _SalespersonFormDialogState extends State<SalespersonFormDialog> {
     return TextFormField(
       controller: _controllers[key],
       keyboardType: TextInputType.number,
-      decoration:
-          InputDecoration(labelText: label, border: const OutlineInputBorder()),
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
       onChanged: (_) => setState(() {}),
     );
   }

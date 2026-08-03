@@ -51,10 +51,12 @@ class _AddContractLinesDialogState extends State<AddContractLinesDialog> {
   List<PriceListItem> get _items {
     if (_priceList == null) return [];
     return _priceList!.items
-        .where((item) =>
-            item.itemKind == 'tier' &&
-            item.commitmentMonths == widget.contract.commitmentMonths &&
-            item.installmentCount == widget.contract.installmentCount)
+        .where(
+          (item) =>
+              item.itemKind == 'tier' &&
+              item.commitmentMonths == widget.contract.commitmentMonths &&
+              item.installmentCount == widget.contract.installmentCount,
+        )
         .toList();
   }
 
@@ -81,8 +83,12 @@ class _AddContractLinesDialogState extends State<AddContractLinesDialog> {
     Navigator.of(context).pop({
       'start_date': _apiDate.format(_startDate),
       'lines': _quantities.entries
-          .map((entry) =>
-              {'price_list_item_id': entry.key, 'quantity': entry.value})
+          .map(
+            (entry) => {
+              'price_list_item_id': entry.key,
+              'quantity': entry.value,
+            },
+          )
           .toList(),
     });
   }
@@ -95,74 +101,79 @@ class _AddContractLinesDialogState extends State<AddContractLinesDialog> {
         width: 560,
         child: _loading
             ? const SizedBox(
-                height: 120, child: Center(child: CircularProgressIndicator()))
+                height: 120,
+                child: Center(child: CircularProgressIndicator()),
+              )
             : _items.isEmpty
-                ? Text(
-                    'Nel listino ${widget.contract.priceListCode} non ci sono '
-                    'voci con impegno ${widget.contract.commitmentLabel} e '
-                    '${widget.contract.installmentCount} rate.')
-                : SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ? Text(
+                'Nel listino ${widget.contract.priceListCode} non ci sono '
+                'voci con impegno ${widget.contract.commitmentLabel} e '
+                '${widget.contract.installmentCount} rate.',
+              )
+            : SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Le voci vengono fatturate a un contratto figlio con '
+                      'lo stesso impegno del padre. I prezzi sono quelli '
+                      'del listino ${widget.contract.priceListCode} e '
+                      'restano congelati alla firma.',
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 16),
+                    ..._items.map(_itemRow),
+                    const Divider(height: 32),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Decorrenza'),
+                      subtitle: Text(
+                        DateFormat('dd/MM/yyyy').format(_startDate),
+                      ),
+                      trailing: TextButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _startDate,
+                            firstDate: DateTime(2024),
+                            lastDate: DateTime(DateTime.now().year + 3),
+                          );
+                          if (picked != null) {
+                            setState(() => _startDate = picked);
+                          }
+                        },
+                        child: const Text('Cambia'),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        const Text('Canone annuo aggiuntivo'),
                         Text(
-                          'Le voci vengono fatturate a un contratto figlio con '
-                          'lo stesso impegno del padre. I prezzi sono quelli '
-                          'del listino ${widget.contract.priceListCode} e '
-                          'restano congelati alla firma.',
-                          style: const TextStyle(
-                              fontSize: 12, color: Colors.grey),
+                          _currency.format(_annualTotal),
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        const SizedBox(height: 16),
-                        ..._items.map(_itemRow),
-                        const Divider(height: 32),
-                        ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: const Text('Decorrenza'),
-                          subtitle: Text(
-                              DateFormat('dd/MM/yyyy').format(_startDate)),
-                          trailing: TextButton(
-                            onPressed: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: _startDate,
-                                firstDate: DateTime(2024),
-                                lastDate: DateTime(DateTime.now().year + 3),
-                              );
-                              if (picked != null) {
-                                setState(() => _startDate = picked);
-                              }
-                            },
-                            child: const Text('Cambia'),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('Canone annuo aggiuntivo'),
-                            Text(_currency.format(_annualTotal),
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        if (_setupTotal > 0)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Una tantum'),
-                              Text(_currency.format(_setupTotal)),
-                            ],
-                          ),
                       ],
                     ),
-                  ),
+                    if (_setupTotal > 0)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Una tantum'),
+                          Text(_currency.format(_setupTotal)),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla')),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annulla'),
+        ),
         FilledButton(
           onPressed: _quantities.isEmpty ? null : _submit,
           child: const Text('Aggiungi'),
@@ -195,12 +206,12 @@ class _AddContractLinesDialogState extends State<AddContractLinesDialog> {
             onPressed: quantity == 0
                 ? null
                 : () => setState(() {
-                      if (quantity <= 1) {
-                        _quantities.remove(item.id);
-                      } else {
-                        _quantities[item.id] = quantity - 1;
-                      }
-                    }),
+                    if (quantity <= 1) {
+                      _quantities.remove(item.id);
+                    } else {
+                      _quantities[item.id] = quantity - 1;
+                    }
+                  }),
           ),
           Text('$quantity'),
           IconButton(

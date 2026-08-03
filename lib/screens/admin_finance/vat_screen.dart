@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/error_handler.dart';
+import '../layout/main_layout.dart';
 
 /// IVA e imposte: quanto tenere da parte e quando versarlo.
 class VatScreen extends StatefulWidget {
@@ -28,8 +29,11 @@ class _VatScreenState extends State<VatScreen> {
     });
   }
 
-  Future<void> _action(VatSettlement settlement, String action,
-      String successMessage) async {
+  Future<void> _action(
+    VatSettlement settlement,
+    String action,
+    String successMessage,
+  ) async {
     final provider = context.read<FinanceProvider>();
     final ok = await provider.vatAction(settlement.id, action);
     if (!mounted) return;
@@ -37,7 +41,9 @@ class _VatScreenState extends State<VatScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, successMessage);
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Operazione non riuscita');
+        context,
+        provider.error ?? 'Operazione non riuscita',
+      );
     }
   }
 
@@ -45,46 +51,52 @@ class _VatScreenState extends State<VatScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<FinanceProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('IVA e imposte',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  provider.loadVatSettlements();
-                  provider.loadTaxPayments();
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _setAsideCard(provider),
-          const SizedBox(height: 24),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Liquidazioni IVA',
-                      style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  _settlementsTable(provider),
-                  const SizedBox(height: 24),
-                  Text('Imposte', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 8),
-                  _taxTable(provider),
-                ],
+    return MainLayout(
+      title: 'IVA e imposte',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () {
+                    provider.loadVatSettlements();
+                    provider.loadTaxPayments();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _setAsideCard(provider),
+            const SizedBox(height: 24),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Liquidazioni IVA',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    _settlementsTable(provider),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Imposte',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    _taxTable(provider),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -100,11 +112,17 @@ class _VatScreenState extends State<VatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('IVA da tenere da parte',
-                      style: TextStyle(color: Colors.grey)),
-                  Text(_currency.format(provider.vatToSetAside),
-                      style: const TextStyle(
-                          fontSize: 30, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'IVA da tenere da parte',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    _currency.format(provider.vatToSetAside),
+                    style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   if (current != null)
                     Text(
                       'Periodo in corso ${current.label}: '
@@ -119,11 +137,17 @@ class _VatScreenState extends State<VatScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Imposte stimate sull\'utile maturato',
-                      style: TextStyle(color: Colors.grey)),
-                  Text(_currency.format(provider.estimatedIncomeTax),
-                      style: const TextStyle(
-                          fontSize: 24, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Imposte stimate sull\'utile maturato',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  Text(
+                    _currency.format(provider.estimatedIncomeTax),
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -137,8 +161,9 @@ class _VatScreenState extends State<VatScreen> {
     if (provider.settlements.isEmpty) {
       return const Card(
         child: Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('Nessuna liquidazione registrata')),
+          padding: EdgeInsets.all(16),
+          child: Text('Nessuna liquidazione registrata'),
+        ),
       );
     }
 
@@ -156,47 +181,63 @@ class _VatScreenState extends State<VatScreen> {
           DataColumn(label: Text('')),
         ],
         rows: provider.settlements.map((settlement) {
-          return DataRow(cells: [
-            DataCell(Text(settlement.label)),
-            DataCell(Text(_currency.format(settlement.vatDebit))),
-            DataCell(Text(_currency.format(settlement.vatCredit))),
-            DataCell(Text(_currency.format(settlement.previousCredit))),
-            DataCell(Text(_currency.format(settlement.interestAmount))),
-            DataCell(Text(
-              _currency.format(settlement.amountDue),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: settlement.isCredit ? Colors.green : null,
-              ),
-            )),
-            DataCell(Text(settlement.dueDate == null
-                ? '-'
-                : _dateFormat.format(settlement.dueDate!))),
-            DataCell(Text(settlement.statusDisplay)),
-            DataCell(Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.calculate, size: 18),
-                  tooltip: 'Ricalcola dai documenti',
-                  onPressed: () => _action(
-                      settlement, 'recompute', 'Liquidazione ricalcolata'),
+          return DataRow(
+            cells: [
+              DataCell(Text(settlement.label)),
+              DataCell(Text(_currency.format(settlement.vatDebit))),
+              DataCell(Text(_currency.format(settlement.vatCredit))),
+              DataCell(Text(_currency.format(settlement.previousCredit))),
+              DataCell(Text(_currency.format(settlement.interestAmount))),
+              DataCell(
+                Text(
+                  _currency.format(settlement.amountDue),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: settlement.isCredit ? Colors.green : null,
+                  ),
                 ),
-                if (settlement.status == 'open')
-                  TextButton(
-                    onPressed: () =>
-                        _action(settlement, 'close', 'Periodo chiuso'),
-                    child: const Text('Chiudi'),
-                  ),
-                if (settlement.status == 'to_pay')
-                  FilledButton.tonal(
-                    onPressed: () =>
-                        _action(settlement, 'mark-paid', 'Versamento registrato'),
-                    child: const Text('Versa'),
-                  ),
-              ],
-            )),
-          ]);
+              ),
+              DataCell(
+                Text(
+                  settlement.dueDate == null
+                      ? '-'
+                      : _dateFormat.format(settlement.dueDate!),
+                ),
+              ),
+              DataCell(Text(settlement.statusDisplay)),
+              DataCell(
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.calculate, size: 18),
+                      tooltip: 'Ricalcola dai documenti',
+                      onPressed: () => _action(
+                        settlement,
+                        'recompute',
+                        'Liquidazione ricalcolata',
+                      ),
+                    ),
+                    if (settlement.status == 'open')
+                      TextButton(
+                        onPressed: () =>
+                            _action(settlement, 'close', 'Periodo chiuso'),
+                        child: const Text('Chiudi'),
+                      ),
+                    if (settlement.status == 'to_pay')
+                      FilledButton.tonal(
+                        onPressed: () => _action(
+                          settlement,
+                          'mark-paid',
+                          'Versamento registrato',
+                        ),
+                        child: const Text('Versa'),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          );
         }).toList(),
       ),
     );
@@ -206,7 +247,9 @@ class _VatScreenState extends State<VatScreen> {
     if (provider.taxPayments.isEmpty) {
       return const Card(
         child: Padding(
-            padding: EdgeInsets.all(16), child: Text('Nessuna imposta registrata')),
+          padding: EdgeInsets.all(16),
+          child: Text('Nessuna imposta registrata'),
+        ),
       );
     }
 
@@ -222,32 +265,43 @@ class _VatScreenState extends State<VatScreen> {
           DataColumn(label: Text('')),
         ],
         rows: provider.taxPayments.map((payment) {
-          return DataRow(cells: [
-            DataCell(Text(payment.kindDisplay)),
-            DataCell(Text('${payment.year}')),
-            DataCell(Text(payment.description)),
-            DataCell(Text(_currency.format(payment.amount))),
-            DataCell(Text(payment.dueDate == null
-                ? '-'
-                : _dateFormat.format(payment.dueDate!))),
-            DataCell(Text(payment.statusDisplay)),
-            DataCell(payment.status == 'paid'
-                ? const SizedBox.shrink()
-                : FilledButton.tonal(
-                    onPressed: () async {
-                      final ok = await provider.markTaxPaid(payment.id, {
-                        'paid_date':
-                            DateFormat('yyyy-MM-dd').format(DateTime.now()),
-                      });
-                      if (!mounted) return;
-                      if (ok) {
-                        ApiErrorHandler.showSuccessSnackbar(
-                            context, 'Versamento registrato');
-                      }
-                    },
-                    child: const Text('Versa'),
-                  )),
-          ]);
+          return DataRow(
+            cells: [
+              DataCell(Text(payment.kindDisplay)),
+              DataCell(Text('${payment.year}')),
+              DataCell(Text(payment.description)),
+              DataCell(Text(_currency.format(payment.amount))),
+              DataCell(
+                Text(
+                  payment.dueDate == null
+                      ? '-'
+                      : _dateFormat.format(payment.dueDate!),
+                ),
+              ),
+              DataCell(Text(payment.statusDisplay)),
+              DataCell(
+                payment.status == 'paid'
+                    ? const SizedBox.shrink()
+                    : FilledButton.tonal(
+                        onPressed: () async {
+                          final ok = await provider.markTaxPaid(payment.id, {
+                            'paid_date': DateFormat(
+                              'yyyy-MM-dd',
+                            ).format(DateTime.now()),
+                          });
+                          if (!mounted) return;
+                          if (ok) {
+                            ApiErrorHandler.showSuccessSnackbar(
+                              context,
+                              'Versamento registrato',
+                            );
+                          }
+                        },
+                        child: const Text('Versa'),
+                      ),
+              ),
+            ],
+          );
         }).toList(),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/error_handler.dart';
+import '../layout/main_layout.dart';
 
 /// Conti e movimenti: la fotografia della liquidità reale.
 class CashScreen extends StatefulWidget {
@@ -35,7 +36,9 @@ class _CashScreenState extends State<CashScreen> {
     final provider = context.read<FinanceProvider>();
     if (provider.accounts.length < 2) {
       ApiErrorHandler.showErrorMessage(
-          context, 'Servono almeno due conti per fare un giroconto');
+        context,
+        'Servono almeno due conti per fare un giroconto',
+      );
       return;
     }
 
@@ -55,8 +58,12 @@ class _CashScreenState extends State<CashScreen> {
                 initialValue: from,
                 decoration: const InputDecoration(labelText: 'Dal conto'),
                 items: provider.accounts
-                    .map((account) => DropdownMenuItem(
-                        value: account.id, child: Text(account.name)))
+                    .map(
+                      (account) => DropdownMenuItem(
+                        value: account.id,
+                        child: Text(account.name),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) => setDialogState(() => from = value),
               ),
@@ -65,8 +72,12 @@ class _CashScreenState extends State<CashScreen> {
                 initialValue: to,
                 decoration: const InputDecoration(labelText: 'Al conto'),
                 items: provider.accounts
-                    .map((account) => DropdownMenuItem(
-                        value: account.id, child: Text(account.name)))
+                    .map(
+                      (account) => DropdownMenuItem(
+                        value: account.id,
+                        child: Text(account.name),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) => setDialogState(() => to = value),
               ),
@@ -80,11 +91,13 @@ class _CashScreenState extends State<CashScreen> {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Annulla')),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annulla'),
+            ),
             FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Trasferisci')),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Trasferisci'),
+            ),
           ],
         ),
       ),
@@ -102,7 +115,9 @@ class _CashScreenState extends State<CashScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Giroconto registrato');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Giroconto non riuscito');
+        context,
+        provider.error ?? 'Giroconto non riuscito',
+      );
     }
   }
 
@@ -110,38 +125,39 @@ class _CashScreenState extends State<CashScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<FinanceProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Liquidità',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              OutlinedButton.icon(
-                onPressed: _transfer,
-                icon: const Icon(Icons.swap_horiz),
-                label: const Text('Giroconto'),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                onPressed: () {
-                  provider.loadAccounts();
-                  provider.loadMovements(accountId: _accountFilter);
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _accountCards(provider),
-          const SizedBox(height: 24),
-          Text('Movimenti', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Expanded(child: _movementsTable(provider)),
-        ],
+    return MainLayout(
+      title: 'Liquidità',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Spacer(),
+                OutlinedButton.icon(
+                  onPressed: _transfer,
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text('Giroconto'),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () {
+                    provider.loadAccounts();
+                    provider.loadMovements(accountId: _accountFilter);
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _accountCards(provider),
+            const SizedBox(height: 24),
+            Text('Movimenti', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Expanded(child: _movementsTable(provider)),
+          ],
+        ),
       ),
     );
   }
@@ -161,12 +177,18 @@ class _CashScreenState extends State<CashScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Totale disponibile sui conti',
-                      style: TextStyle(fontSize: 12)),
+                  const Text(
+                    'Totale disponibile sui conti',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   const SizedBox(height: 4),
-                  Text(_currency.format(provider.accountsTotal),
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(
+                    _currency.format(provider.accountsTotal),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -185,19 +207,23 @@ class _CashScreenState extends State<CashScreen> {
         child: InkWell(
           onTap: () {
             setState(() => _accountFilter = selected ? null : account.id);
-            context
-                .read<FinanceProvider>()
-                .loadMovements(accountId: _accountFilter);
+            context.read<FinanceProvider>().loadMovements(
+              accountId: _accountFilter,
+            );
           },
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(account.name,
-                    style: const TextStyle(fontWeight: FontWeight.w600)),
-                Text(account.kindDisplay,
-                    style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Text(
+                  account.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  account.kindDisplay,
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   _currency.format(account.balance),
@@ -232,23 +258,31 @@ class _CashScreenState extends State<CashScreen> {
             DataColumn(label: Text('Importo'), numeric: true),
           ],
           rows: provider.movements.map((movement) {
-            return DataRow(cells: [
-              DataCell(Text(movement.valueDate == null
-                  ? '-'
-                  : _dateFormat.format(movement.valueDate!))),
-              DataCell(Text(movement.accountName)),
-              DataCell(Text(movement.description)),
-              DataCell(Text(movement.kindDisplay)),
-              DataCell(Text(movement.categoryName)),
-              DataCell(Text(
-                '${movement.isIncoming ? '+' : '-'}'
-                '${_currency.format(movement.amount)}',
-                style: TextStyle(
-                  color: movement.isIncoming ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.w600,
+            return DataRow(
+              cells: [
+                DataCell(
+                  Text(
+                    movement.valueDate == null
+                        ? '-'
+                        : _dateFormat.format(movement.valueDate!),
+                  ),
                 ),
-              )),
-            ]);
+                DataCell(Text(movement.accountName)),
+                DataCell(Text(movement.description)),
+                DataCell(Text(movement.kindDisplay)),
+                DataCell(Text(movement.categoryName)),
+                DataCell(
+                  Text(
+                    '${movement.isIncoming ? '+' : '-'}'
+                    '${_currency.format(movement.amount)}',
+                    style: TextStyle(
+                      color: movement.isIncoming ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            );
           }).toList(),
         ),
       ),

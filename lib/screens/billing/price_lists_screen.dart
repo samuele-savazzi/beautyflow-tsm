@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
 import '../../utils/error_handler.dart';
+import '../layout/main_layout.dart';
 
 /// Listini versionati.
 ///
@@ -25,7 +26,8 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
-        (_) => context.read<BillingProvider>().loadPriceLists());
+      (_) => context.read<BillingProvider>().loadPriceLists(),
+    );
   }
 
   Future<void> _clone(PriceList priceList) async {
@@ -42,24 +44,29 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
             TextField(
               controller: codeController,
               decoration: const InputDecoration(
-                  labelText: 'Codice (es. 2027-01)',
-                  border: OutlineInputBorder()),
+                labelText: 'Codice (es. 2027-01)',
+                border: OutlineInputBorder(),
+              ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                  labelText: 'Nome', border: OutlineInputBorder()),
+                labelText: 'Nome',
+                border: OutlineInputBorder(),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annulla')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annulla'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Crea bozza')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Crea bozza'),
+          ),
         ],
       ),
     );
@@ -67,13 +74,18 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
 
     final provider = context.read<BillingProvider>();
     final ok = await provider.clonePriceList(
-        priceList.id, codeController.text.trim(), nameController.text.trim());
+      priceList.id,
+      codeController.text.trim(),
+      nameController.text.trim(),
+    );
     if (!mounted) return;
     if (ok) {
       ApiErrorHandler.showSuccessSnackbar(context, 'Bozza creata');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Clonazione non riuscita');
+        context,
+        provider.error ?? 'Clonazione non riuscita',
+      );
     }
   }
 
@@ -88,11 +100,13 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annulla')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annulla'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Attiva')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Attiva'),
+          ),
         ],
       ),
     );
@@ -105,7 +119,9 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Listino attivato');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Attivazione non riuscita');
+        context,
+        provider.error ?? 'Attivazione non riuscita',
+      );
     }
   }
 
@@ -113,32 +129,35 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<BillingProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Listini', style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: provider.loadPriceLists),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return MainLayout(
+      title: 'Listini',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                SizedBox(width: 320, child: _listPanel(provider)),
-                const SizedBox(width: 24),
-                Expanded(child: _detailPanel(provider)),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: provider.loadPriceLists,
+                ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(width: 320, child: _listPanel(provider)),
+                  const SizedBox(width: 24),
+                  Expanded(child: _detailPanel(provider)),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -147,7 +166,9 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
     if (provider.priceLists.isEmpty) {
       return const Card(
         child: Padding(
-            padding: EdgeInsets.all(16), child: Text('Nessun listino')),
+          padding: EdgeInsets.all(16),
+          child: Text('Nessun listino'),
+        ),
       );
     }
 
@@ -160,11 +181,15 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
           child: ListTile(
             title: Text('${priceList.name} (${priceList.code})'),
             subtitle: Text(
-                '${priceList.statusLabel} · ${priceList.itemsCount} voci · '
-                'IVA ${priceList.vatRate.toStringAsFixed(0)}%'),
+              '${priceList.statusLabel} · ${priceList.itemsCount} voci · '
+              'IVA ${priceList.vatRate.toStringAsFixed(0)}%',
+            ),
             trailing: PopupMenuButton<String>(
               itemBuilder: (_) => [
-                const PopupMenuItem(value: 'clone', child: Text('Nuova versione')),
+                const PopupMenuItem(
+                  value: 'clone',
+                  child: Text('Nuova versione'),
+                ),
                 if (priceList.status != 'active')
                   const PopupMenuItem(value: 'activate', child: Text('Attiva')),
               ],
@@ -201,8 +226,7 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
         children: [
           Row(
             children: [
-              Text(detail.name,
-                  style: Theme.of(context).textTheme.titleLarge),
+              Text(detail.name, style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(width: 12),
               Chip(label: Text(detail.statusLabel)),
               if (!detail.isEditable)
@@ -212,7 +236,11 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                     message:
                         'Un listino non in bozza è storia: per cambiare i prezzi '
                         'creane una nuova versione',
-                    child: Icon(Icons.lock_outline, size: 18, color: Colors.grey),
+                    child: Icon(
+                      Icons.lock_outline,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
             ],
@@ -252,20 +280,34 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                 DataColumn(label: Text('Provvigione A1/A2/A3')),
               ],
               rows: items
-                  .map((item) => DataRow(cells: [
+                  .map(
+                    (item) => DataRow(
+                      cells: [
                         DataCell(Text(item.commitmentLabel)),
                         DataCell(Text(item.installmentLabel)),
                         DataCell(Text(_currency.format(item.annualTotal))),
-                        DataCell(Text(_currency.format(item.installmentAmount))),
-                        DataCell(Text(item.setupFee > 0
-                            ? _currency.format(item.setupFee)
-                            : '—')),
-                        DataCell(Text(item.commissionMonthlyRule
-                            ? '1 mensilità dopo il 3° pagamento'
-                            : '${item.commissionRateY1.toStringAsFixed(0)}% / '
-                                '${item.commissionRateY2.toStringAsFixed(0)}% / '
-                                '${item.commissionRateY3plus.toStringAsFixed(0)}%')),
-                      ]))
+                        DataCell(
+                          Text(_currency.format(item.installmentAmount)),
+                        ),
+                        DataCell(
+                          Text(
+                            item.setupFee > 0
+                                ? _currency.format(item.setupFee)
+                                : '—',
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            item.commissionMonthlyRule
+                                ? '1 mensilità dopo il 3° pagamento'
+                                : '${item.commissionRateY1.toStringAsFixed(0)}% / '
+                                      '${item.commissionRateY2.toStringAsFixed(0)}% / '
+                                      '${item.commissionRateY3plus.toStringAsFixed(0)}%',
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
                   .toList(),
             ),
           ],

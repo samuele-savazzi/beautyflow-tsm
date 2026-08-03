@@ -11,6 +11,7 @@ import '../../providers/navigation_provider.dart';
 import '../../utils/error_handler.dart';
 import '../../utils/file_utils.dart';
 import 'add_contract_lines_dialog.dart';
+import '../layout/main_layout.dart';
 
 /// Dettaglio di un contratto: righe pinnate, scadenzario, provvigioni e
 /// versioni archiviate.
@@ -30,8 +31,10 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) =>
-        context.read<BillingProvider>().loadContractDetail(widget.contractId));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) =>
+          context.read<BillingProvider>().loadContractDetail(widget.contractId),
+    );
   }
 
   Future<void> _terminate(Contract contract) async {
@@ -52,17 +55,21 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
             TextField(
               controller: controller,
               decoration: const InputDecoration(
-                  labelText: 'Motivo', border: OutlineInputBorder()),
+                labelText: 'Motivo',
+                border: OutlineInputBorder(),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annulla')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annulla'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Cessa')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Cessa'),
+          ),
         ],
       ),
     );
@@ -75,7 +82,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Contratto cessato');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Operazione non riuscita');
+        context,
+        provider.error ?? 'Operazione non riuscita',
+      );
     }
   }
 
@@ -85,10 +94,14 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     if (!mounted) return;
     if (ok) {
       ApiErrorHandler.showSuccessSnackbar(
-          context, 'Rinnovata un\'altra annualità');
+        context,
+        'Rinnovata un\'altra annualità',
+      );
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Rinnovo non riuscito');
+        context,
+        provider.error ?? 'Rinnovo non riuscito',
+      );
     }
   }
 
@@ -106,7 +119,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
         .toList();
     if (candidates.isEmpty) {
       ApiErrorHandler.showErrorMessage(
-          context, 'Nessun altro listino attivo su cui migrare');
+        context,
+        'Nessun altro listino attivo su cui migrare',
+      );
       return;
     }
 
@@ -130,11 +145,16 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
               DropdownButtonFormField<int>(
                 initialValue: selected,
                 decoration: const InputDecoration(
-                    labelText: 'Listino di destinazione',
-                    border: OutlineInputBorder()),
+                  labelText: 'Listino di destinazione',
+                  border: OutlineInputBorder(),
+                ),
                 items: candidates
-                    .map((list) => DropdownMenuItem(
-                        value: list.id, child: Text('${list.code} - ${list.name}')))
+                    .map(
+                      (list) => DropdownMenuItem(
+                        value: list.id,
+                        child: Text('${list.code} - ${list.name}'),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) => setDialogState(() => selected = value),
               ),
@@ -142,11 +162,13 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           ),
           actions: [
             TextButton(
-                onPressed: () => Navigator.pop(dialogContext, false),
-                child: const Text('Annulla')),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Annulla'),
+            ),
             FilledButton(
-                onPressed: () => Navigator.pop(dialogContext, true),
-                child: const Text('Migra')),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Migra'),
+            ),
           ],
         ),
       ),
@@ -159,7 +181,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Listino aggiornato');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Migrazione non riuscita');
+        context,
+        provider.error ?? 'Migrazione non riuscita',
+      );
     }
   }
 
@@ -175,10 +199,14 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     if (!mounted) return;
     if (addon != null) {
       ApiErrorHandler.showSuccessSnackbar(
-          context, 'Voci aggiunte con il contratto #${addon.id}');
+        context,
+        'Voci aggiunte con il contratto #${addon.id}',
+      );
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Aggiunta non riuscita');
+        context,
+        provider.error ?? 'Aggiunta non riuscita',
+      );
     }
   }
 
@@ -217,17 +245,21 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                  labelText: 'Firmato da', border: OutlineInputBorder()),
+                labelText: 'Firmato da',
+                border: OutlineInputBorder(),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Annulla')),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Annulla'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Carica')),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Carica'),
+          ),
         ],
       ),
     );
@@ -242,10 +274,15 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     );
     if (!mounted) return;
     if (ok) {
-      ApiErrorHandler.showSuccessSnackbar(context, 'Contratto firmato caricato');
+      ApiErrorHandler.showSuccessSnackbar(
+        context,
+        'Contratto firmato caricato',
+      );
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Upload non riuscito');
+        context,
+        provider.error ?? 'Upload non riuscito',
+      );
     }
   }
 
@@ -255,7 +292,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     if (!mounted) return;
     if (url == null) {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Documento non disponibile');
+        context,
+        provider.error ?? 'Documento non disponibile',
+      );
       return;
     }
     await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
@@ -266,62 +305,69 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     final provider = context.watch<BillingProvider>();
     final contract = provider.contractDetail;
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => context
-                    .read<NavigationProvider>()
-                    .navigateTo(AppSection.contracts),
-              ),
-              Text('Contratto #${widget.contractId}',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              if (contract != null) ...[
-                OutlinedButton.icon(
-                  onPressed: () => _uploadSigned(contract),
-                  icon: const Icon(Icons.upload_file, size: 18),
-                  label: const Text('Contratto firmato'),
+    return MainLayout(
+      title: "Contratto #${widget.contractId}",
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () => context
+                      .read<NavigationProvider>()
+                      .navigateTo(AppSection.contracts),
                 ),
-                const SizedBox(width: 8),
-              ],
-              if (contract != null && contract.isActive) ...[
-                OutlinedButton(
+                const Spacer(),
+                if (contract != null) ...[
+                  OutlinedButton.icon(
+                    onPressed: () => _uploadSigned(contract),
+                    icon: const Icon(Icons.upload_file, size: 18),
+                    label: const Text('Contratto firmato'),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                if (contract != null && contract.isActive) ...[
+                  OutlinedButton(
                     onPressed: () => _addLines(contract),
-                    child: const Text('Aggiungi voci')),
-                const SizedBox(width: 8),
-                OutlinedButton(
+                    child: const Text('Aggiungi voci'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
                     onPressed: () => _migratePriceList(contract),
-                    child: const Text('Cambia listino')),
-                const SizedBox(width: 8),
-                OutlinedButton(
+                    child: const Text('Cambia listino'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
                     onPressed: () => _renew(contract),
-                    child: const Text('Rinnova annualità')),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: () => _terminate(contract),
-                  style:
-                      OutlinedButton.styleFrom(foregroundColor: Colors.red),
-                  child: const Text('Cessa'),
-                ),
+                    child: const Text('Rinnova annualità'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: () => _terminate(contract),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                    child: const Text('Cessa'),
+                  ),
+                ],
               ],
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (provider.isLoading && contract == null)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (contract == null)
-            Expanded(
+            ),
+            const SizedBox(height: 16),
+            if (provider.isLoading && contract == null)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (contract == null)
+              Expanded(
                 child: Center(
-                    child: Text(provider.error ?? 'Contratto non trovato')))
-          else
-            Expanded(child: _body(contract, provider)),
-        ],
+                  child: Text(provider.error ?? 'Contratto non trovato'),
+                ),
+              )
+            else
+              Expanded(child: _body(contract, provider)),
+          ],
+        ),
       ),
     );
   }
@@ -357,20 +403,26 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
             _info('Cliente', contract.tenantName),
             _info('Piano', contract.quotaTypeCode ?? '—'),
             _info('Impegno', contract.commitmentLabel),
-            _info('Annualità',
-                '${contract.currentCycle} di ${contract.totalCycles}'),
+            _info(
+              'Annualità',
+              '${contract.currentCycle} di ${contract.totalCycles}',
+            ),
             _info('Rate per anno', '${contract.installmentCount}'),
             _info('Canone annuo', _currency.format(contract.annualTotal)),
             if (contract.setupTotal > 0)
               _info('Una tantum', _currency.format(contract.setupTotal)),
-            _info('Decorrenza',
-                contract.startDate == null
-                    ? '-'
-                    : _dateFormat.format(contract.startDate!)),
-            _info('Scadenza',
-                contract.endDate == null
-                    ? '-'
-                    : _dateFormat.format(contract.endDate!)),
+            _info(
+              'Decorrenza',
+              contract.startDate == null
+                  ? '-'
+                  : _dateFormat.format(contract.startDate!),
+            ),
+            _info(
+              'Scadenza',
+              contract.endDate == null
+                  ? '-'
+                  : _dateFormat.format(contract.endDate!),
+            ),
             _info('Listino', contract.priceListCode),
             _info('Commerciale', contract.salespersonName ?? '—'),
             _info('Stato', contract.statusDisplay),
@@ -413,15 +465,23 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           DataColumn(label: Text('Provvigione A1/A2/A3')),
         ],
         rows: contract.lines
-            .map((line) => DataRow(cells: [
+            .map(
+              (line) => DataRow(
+                cells: [
                   DataCell(Text(line.description)),
                   DataCell(Text('${line.quantity}')),
                   DataCell(Text(_currency.format(line.annualTotal))),
                   DataCell(Text(_currency.format(line.setupFee))),
-                  DataCell(Text('${line.commissionRateY1.toStringAsFixed(0)}% / '
+                  DataCell(
+                    Text(
+                      '${line.commissionRateY1.toStringAsFixed(0)}% / '
                       '${line.commissionRateY2.toStringAsFixed(0)}% / '
-                      '${line.commissionRateY3plus.toStringAsFixed(0)}%')),
-                ]))
+                      '${line.commissionRateY3plus.toStringAsFixed(0)}%',
+                    ),
+                  ),
+                ],
+              ),
+            )
             .toList(),
       ),
     );
@@ -440,19 +500,31 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           DataColumn(label: Text('Fattura')),
         ],
         rows: contract.installments
-            .map((installment) => DataRow(cells: [
+            .map(
+              (installment) => DataRow(
+                cells: [
                   DataCell(Text('${installment.cycleNumber}')),
                   DataCell(Text(installment.label)),
-                  DataCell(Text(installment.dueDate == null
-                      ? '-'
-                      : _dateFormat.format(installment.dueDate!))),
-                  DataCell(Text(installment.periodEnd == null
-                      ? '-'
-                      : _dateFormat.format(installment.periodEnd!))),
+                  DataCell(
+                    Text(
+                      installment.dueDate == null
+                          ? '-'
+                          : _dateFormat.format(installment.dueDate!),
+                    ),
+                  ),
+                  DataCell(
+                    Text(
+                      installment.periodEnd == null
+                          ? '-'
+                          : _dateFormat.format(installment.periodEnd!),
+                    ),
+                  ),
                   DataCell(Text(_currency.format(installment.totalAmount))),
                   DataCell(Text(installment.statusDisplay)),
                   DataCell(Text(installment.invoiceNumber ?? '—')),
-                ]))
+                ],
+              ),
+            )
             .toList(),
       ),
     );
@@ -471,7 +543,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           DataColumn(label: Text('Stato')),
         ],
         rows: provider.commissions
-            .map((commission) => DataRow(cells: [
+            .map(
+              (commission) => DataRow(
+                cells: [
                   DataCell(Text(commission.salespersonName)),
                   DataCell(Text(commission.kindDisplay)),
                   DataCell(Text('${commission.cycleNumber}')),
@@ -479,7 +553,9 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                   DataCell(Text('${commission.rate.toStringAsFixed(0)}%')),
                   DataCell(Text(_currency.format(commission.amount))),
                   DataCell(Text(commission.statusDisplay)),
-                ]))
+                ],
+              ),
+            )
             .toList(),
       ),
     );
@@ -507,8 +583,10 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                 if (document.changeReason.isNotEmpty)
                   Text(document.changeReason),
                 if (document.signedFileUploaded)
-                  Text('Firmato da ${document.signedByName}',
-                      style: const TextStyle(fontSize: 12)),
+                  Text(
+                    'Firmato da ${document.signedByName}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
                 if (document.retentionUntil != null)
                   Text(
                     'Conservazione fino al '
@@ -516,8 +594,10 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                     style: const TextStyle(fontSize: 11, color: Colors.grey),
                   ),
                 if (document.deletedAt != null)
-                  const Text('Cancellato per fine conservazione',
-                      style: TextStyle(fontSize: 11, color: Colors.red)),
+                  const Text(
+                    'Cancellato per fine conservazione',
+                    style: TextStyle(fontSize: 11, color: Colors.red),
+                  ),
               ],
             ),
             isThreeLine: true,

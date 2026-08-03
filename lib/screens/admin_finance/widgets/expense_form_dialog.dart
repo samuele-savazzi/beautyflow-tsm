@@ -43,11 +43,15 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
     super.initState();
     final expense = widget.expense;
     _description = TextEditingController(text: expense?.description ?? '');
-    _documentNumber = TextEditingController(text: expense?.documentNumber ?? '');
+    _documentNumber = TextEditingController(
+      text: expense?.documentNumber ?? '',
+    );
     _taxableAmount = TextEditingController(
-        text: expense == null ? '' : expense.taxableAmount.toStringAsFixed(2));
+      text: expense == null ? '' : expense.taxableAmount.toStringAsFixed(2),
+    );
     _vatRate = TextEditingController(
-        text: (expense?.vatRate ?? 22).toStringAsFixed(2));
+      text: (expense?.vatRate ?? 22).toStringAsFixed(2),
+    );
     _notes = TextEditingController(text: expense?.notes ?? '');
 
     if (expense != null) {
@@ -125,7 +129,9 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                 TextFormField(
                   controller: _description,
                   decoration: const InputDecoration(
-                      labelText: 'Descrizione *', border: OutlineInputBorder()),
+                    labelText: 'Descrizione *',
+                    border: OutlineInputBorder(),
+                  ),
                   validator: (value) => (value == null || value.trim().isEmpty)
                       ? 'Campo obbligatorio'
                       : null,
@@ -134,16 +140,20 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                 DropdownButtonFormField<int>(
                   initialValue: _categoryId,
                   decoration: const InputDecoration(
-                      labelText: 'Categoria *', border: OutlineInputBorder()),
+                    labelText: 'Categoria *',
+                    border: OutlineInputBorder(),
+                  ),
                   items: provider.categories
-                      .map((category) => DropdownMenuItem(
-                            value: category.id,
-                            child: Text(
-                              category.countsInPnl
-                                  ? category.name
-                                  : '${category.name}  (non è un costo)',
-                            ),
-                          ))
+                      .map(
+                        (category) => DropdownMenuItem(
+                          value: category.id,
+                          child: Text(
+                            category.countsInPnl
+                                ? category.name
+                                : '${category.name}  (non è un costo)',
+                          ),
+                        ),
+                      )
                       .toList(),
                   validator: (value) =>
                       value == null ? 'Scegli una categoria' : null,
@@ -153,10 +163,16 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                 DropdownButtonFormField<int>(
                   initialValue: _vendorId,
                   decoration: const InputDecoration(
-                      labelText: 'Fornitore', border: OutlineInputBorder()),
+                    labelText: 'Fornitore',
+                    border: OutlineInputBorder(),
+                  ),
                   items: provider.vendors
-                      .map((vendor) => DropdownMenuItem(
-                          value: vendor.id, child: Text(vendor.name)))
+                      .map(
+                        (vendor) => DropdownMenuItem(
+                          value: vendor.id,
+                          child: Text(vendor.name),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) => setState(() => _vendorId = value),
                 ),
@@ -167,12 +183,14 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                       child: TextFormField(
                         controller: _taxableAmount,
                         decoration: const InputDecoration(
-                            labelText: 'Imponibile *',
-                            border: OutlineInputBorder()),
+                          labelText: 'Imponibile *',
+                          border: OutlineInputBorder(),
+                        ),
                         keyboardType: TextInputType.number,
                         validator: (value) {
                           final parsed = double.tryParse(
-                              (value ?? '').replaceAll(',', '.'));
+                            (value ?? '').replaceAll(',', '.'),
+                          );
                           if (parsed == null || parsed <= 0) {
                             return 'Importo non valido';
                           }
@@ -185,7 +203,9 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                       child: TextFormField(
                         controller: _vatRate,
                         decoration: const InputDecoration(
-                            labelText: 'IVA %', border: OutlineInputBorder()),
+                          labelText: 'IVA %',
+                          border: OutlineInputBorder(),
+                        ),
                         keyboardType: TextInputType.number,
                       ),
                     ),
@@ -195,13 +215,19 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                 Row(
                   children: [
                     Expanded(
-                      child: _dateField('Data documento', _documentDate,
-                          (picked) => setState(() => _documentDate = picked)),
+                      child: _dateField(
+                        'Data documento',
+                        _documentDate,
+                        (picked) => setState(() => _documentDate = picked),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _dateField('Scadenza pagamento', _paymentDueDate,
-                          (picked) => setState(() => _paymentDueDate = picked)),
+                      child: _dateField(
+                        'Scadenza pagamento',
+                        _paymentDueDate,
+                        (picked) => setState(() => _paymentDueDate = picked),
+                      ),
                     ),
                   ],
                 ),
@@ -209,13 +235,19 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                 Row(
                   children: [
                     Expanded(
-                      child: _dateField('Competenza dal', _competenceStart,
-                          (picked) => setState(() => _competenceStart = picked)),
+                      child: _dateField(
+                        'Competenza dal',
+                        _competenceStart,
+                        (picked) => setState(() => _competenceStart = picked),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _dateField('Competenza al', _competenceEnd,
-                          (picked) => setState(() => _competenceEnd = picked)),
+                      child: _dateField(
+                        'Competenza al',
+                        _competenceEnd,
+                        (picked) => setState(() => _competenceEnd = picked),
+                      ),
                     ),
                   ],
                 ),
@@ -233,19 +265,27 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                   onChanged: (value) => setState(() => _isRecurring = value),
                   title: const Text('Costo ricorrente'),
                   subtitle: const Text(
-                      'Verrà rigenerato automaticamente a ogni scadenza',
-                      style: TextStyle(fontSize: 12)),
+                    'Verrà rigenerato automaticamente a ogni scadenza',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   contentPadding: EdgeInsets.zero,
                 ),
                 if (_isRecurring)
                   DropdownButtonFormField<String>(
                     initialValue: _recurrenceRule,
                     decoration: const InputDecoration(
-                        labelText: 'Periodicità', border: OutlineInputBorder()),
+                      labelText: 'Periodicità',
+                      border: OutlineInputBorder(),
+                    ),
                     items: const [
-                      DropdownMenuItem(value: 'monthly', child: Text('Mensile')),
                       DropdownMenuItem(
-                          value: 'quarterly', child: Text('Trimestrale')),
+                        value: 'monthly',
+                        child: Text('Mensile'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'quarterly',
+                        child: Text('Trimestrale'),
+                      ),
                       DropdownMenuItem(value: 'yearly', child: Text('Annuale')),
                     ],
                     onChanged: (value) =>
@@ -255,15 +295,18 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
                 TextFormField(
                   controller: _documentNumber,
                   decoration: const InputDecoration(
-                      labelText: 'Numero documento',
-                      border: OutlineInputBorder()),
+                    labelText: 'Numero documento',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _notes,
                   maxLines: 2,
                   decoration: const InputDecoration(
-                      labelText: 'Note', border: OutlineInputBorder()),
+                    labelText: 'Note',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
               ],
             ),
@@ -272,23 +315,29 @@ class _ExpenseFormDialogState extends State<ExpenseFormDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annulla')),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Annulla'),
+        ),
         FilledButton(onPressed: _submit, child: const Text('Salva')),
       ],
     );
   }
 
   Widget _dateField(
-      String label, DateTime? value, ValueChanged<DateTime> onPicked) {
+    String label,
+    DateTime? value,
+    ValueChanged<DateTime> onPicked,
+  ) {
     return InkWell(
       onTap: () async {
         final picked = await _pickDate(value);
         if (picked != null) onPicked(picked);
       },
       child: InputDecorator(
-        decoration:
-            InputDecoration(labelText: label, border: const OutlineInputBorder()),
+        decoration: InputDecoration(
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
         child: Text(value == null ? '—' : _dateFormat.format(value)),
       ),
     );

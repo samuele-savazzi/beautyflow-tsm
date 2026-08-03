@@ -6,6 +6,7 @@ import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/error_handler.dart';
 import 'widgets/expense_form_dialog.dart';
+import '../layout/main_layout.dart';
 
 /// Costi dell'azienda: registrazione, pagamento e ricorrenze.
 class ExpensesScreen extends StatefulWidget {
@@ -36,9 +37,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
 
   void _load() {
     context.read<FinanceProvider>().loadExpenses(
-          page: _page,
-          status: _statusFilter.isEmpty ? null : _statusFilter,
-        );
+      page: _page,
+      status: _statusFilter.isEmpty ? null : _statusFilter,
+    );
   }
 
   Future<void> _openForm({Expense? expense}) async {
@@ -56,7 +57,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Costo salvato');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Salvataggio non riuscito');
+        context,
+        provider.error ?? 'Salvataggio non riuscito',
+      );
     }
   }
 
@@ -66,15 +69,19 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Registra pagamento'),
-        content: Text('Confermi il pagamento di '
-            '${_currency.format(expense.totalAmount)} per "${expense.description}"?'),
+        content: Text(
+          'Confermi il pagamento di '
+          '${_currency.format(expense.totalAmount)} per "${expense.description}"?',
+        ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annulla')),
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annulla'),
+          ),
           FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Conferma')),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Conferma'),
+          ),
         ],
       ),
     );
@@ -90,7 +97,9 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Pagamento registrato');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Registrazione non riuscita');
+        context,
+        provider.error ?? 'Registrazione non riuscita',
+      );
     }
   }
 
@@ -98,43 +107,47 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<FinanceProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Costi', style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: () => _openForm(),
-                icon: const Icon(Icons.add),
-                label: const Text('Nuovo costo'),
-              ),
-              const SizedBox(width: 8),
-              IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              _filterChip('Da pagare', 'to_pay'),
-              _filterChip('Pagati', 'paid'),
-              _filterChip('Tutti', ''),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (provider.isLoading)
-            const LinearProgressIndicator()
-          else if (provider.error != null)
-            Text(provider.error!, style: const TextStyle(color: Colors.red))
-          else if (provider.expenses.isEmpty)
-            const Expanded(child: Center(child: Text('Nessun costo registrato')))
-          else
-            Expanded(child: _table(provider)),
-        ],
+    return MainLayout(
+      title: 'Costi',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: () => _openForm(),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Nuovo costo'),
+                ),
+                const SizedBox(width: 8),
+                IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                _filterChip('Da pagare', 'to_pay'),
+                _filterChip('Pagati', 'paid'),
+                _filterChip('Tutti', ''),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (provider.isLoading)
+              const LinearProgressIndicator()
+            else if (provider.error != null)
+              Text(provider.error!, style: const TextStyle(color: Colors.red))
+            else if (provider.expenses.isEmpty)
+              const Expanded(
+                child: Center(child: Text('Nessun costo registrato')),
+              )
+            else
+              Expanded(child: _table(provider)),
+          ],
+        ),
       ),
     );
   }
@@ -169,44 +182,62 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             DataColumn(label: Text('')),
           ],
           rows: provider.expenses.map((expense) {
-            return DataRow(cells: [
-              DataCell(Text(expense.documentDate == null
-                  ? '-'
-                  : _dateFormat.format(expense.documentDate!))),
-              DataCell(Row(
-                children: [
-                  Text(expense.description),
-                  if (expense.isRecurring)
-                    const Padding(
-                      padding: EdgeInsets.only(left: 6),
-                      child: Icon(Icons.autorenew, size: 14, color: Colors.grey),
-                    ),
-                ],
-              )),
-              DataCell(Text(expense.vendorName)),
-              DataCell(_categoryChip(expense)),
-              DataCell(Text(_currency.format(expense.taxableAmount))),
-              DataCell(Text(_currency.format(expense.totalAmount))),
-              DataCell(Text(expense.paymentDueDate == null
-                  ? '-'
-                  : _dateFormat.format(expense.paymentDueDate!))),
-              DataCell(Text(expense.statusDisplay)),
-              DataCell(Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!expense.isPaid)
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 18),
-                      onPressed: () => _openForm(expense: expense),
-                    ),
-                  if (!expense.isPaid)
-                    FilledButton.tonal(
-                      onPressed: () => _markPaid(expense),
-                      child: const Text('Paga'),
-                    ),
-                ],
-              )),
-            ]);
+            return DataRow(
+              cells: [
+                DataCell(
+                  Text(
+                    expense.documentDate == null
+                        ? '-'
+                        : _dateFormat.format(expense.documentDate!),
+                  ),
+                ),
+                DataCell(
+                  Row(
+                    children: [
+                      Text(expense.description),
+                      if (expense.isRecurring)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 6),
+                          child: Icon(
+                            Icons.autorenew,
+                            size: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                DataCell(Text(expense.vendorName)),
+                DataCell(_categoryChip(expense)),
+                DataCell(Text(_currency.format(expense.taxableAmount))),
+                DataCell(Text(_currency.format(expense.totalAmount))),
+                DataCell(
+                  Text(
+                    expense.paymentDueDate == null
+                        ? '-'
+                        : _dateFormat.format(expense.paymentDueDate!),
+                  ),
+                ),
+                DataCell(Text(expense.statusDisplay)),
+                DataCell(
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (!expense.isPaid)
+                        IconButton(
+                          icon: const Icon(Icons.edit, size: 18),
+                          onPressed: () => _openForm(expense: expense),
+                        ),
+                      if (!expense.isPaid)
+                        FilledButton.tonal(
+                          onPressed: () => _markPaid(expense),
+                          child: const Text('Paga'),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            );
           }).toList(),
         ),
       ),

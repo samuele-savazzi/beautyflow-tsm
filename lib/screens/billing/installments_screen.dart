@@ -6,6 +6,7 @@ import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
 import '../../utils/error_handler.dart';
 import 'widgets/mark_paid_dialog.dart';
+import '../layout/main_layout.dart';
 
 /// Scadenzario: tutte le rate da incassare, con quelle scadute in evidenza.
 ///
@@ -33,9 +34,9 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
 
   void _load() {
     context.read<BillingProvider>().loadInstallments(
-          page: _page,
-          status: _statusFilter.isEmpty ? null : _statusFilter,
-        );
+      page: _page,
+      status: _statusFilter.isEmpty ? null : _statusFilter,
+    );
   }
 
   Future<void> _markPaid(Installment installment) async {
@@ -51,11 +52,15 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
 
     if (ok) {
       ApiErrorHandler.showSuccessSnackbar(
-          context, 'Incasso registrato: ${installment.tenantName}');
+        context,
+        'Incasso registrato: ${installment.tenantName}',
+      );
       _load();
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Registrazione non riuscita');
+        context,
+        provider.error ?? 'Registrazione non riuscita',
+      );
     }
   }
 
@@ -69,7 +74,9 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
       _load();
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Emissione non riuscita');
+        context,
+        provider.error ?? 'Emissione non riuscita',
+      );
     }
   }
 
@@ -97,14 +104,17 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
             TextField(
               controller: controller,
               decoration: const InputDecoration(
-                  labelText: 'Motivo', border: OutlineInputBorder()),
+                labelText: 'Motivo',
+                border: OutlineInputBorder(),
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Indietro')),
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Indietro'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -116,7 +126,10 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
     if (confirmed != true || !mounted) return;
 
     final provider = context.read<BillingProvider>();
-    final ok = await provider.cancelInstallment(installment.id, controller.text);
+    final ok = await provider.cancelInstallment(
+      installment.id,
+      controller.text,
+    );
     if (!mounted) return;
 
     if (ok) {
@@ -124,7 +137,9 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
       _load();
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Annullamento non riuscito');
+        context,
+        provider.error ?? 'Annullamento non riuscito',
+      );
     }
   }
 
@@ -132,46 +147,47 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<BillingProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Scadenzario',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.refresh),
-                tooltip: 'Aggiorna',
-                onPressed: _load,
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              _filterChip('Da incassare', 'pending,overdue'),
-              _filterChip('Solo scadute', 'overdue'),
-              _filterChip('Incassate', 'paid'),
-              _filterChip('Tutte', ''),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (provider.isLoading)
-            const LinearProgressIndicator()
-          else if (provider.error != null)
-            _ErrorBox(message: provider.error!, onRetry: _load)
-          else if (provider.installments.isEmpty)
-            const Expanded(
-              child: Center(child: Text('Nessuna rata per i filtri scelti')),
-            )
-          else
-            Expanded(child: _table(provider)),
-          if (provider.installmentsPages > 1) _pagination(provider),
-        ],
+    return MainLayout(
+      title: 'Scadenzario',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.refresh),
+                  tooltip: 'Aggiorna',
+                  onPressed: _load,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                _filterChip('Da incassare', 'pending,overdue'),
+                _filterChip('Solo scadute', 'overdue'),
+                _filterChip('Incassate', 'paid'),
+                _filterChip('Tutte', ''),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (provider.isLoading)
+              const LinearProgressIndicator()
+            else if (provider.error != null)
+              _ErrorBox(message: provider.error!, onRetry: _load)
+            else if (provider.installments.isEmpty)
+              const Expanded(
+                child: Center(child: Text('Nessuna rata per i filtri scelti')),
+              )
+            else
+              Expanded(child: _table(provider)),
+            if (provider.installmentsPages > 1) _pagination(provider),
+          ],
+        ),
       ),
     );
   }
@@ -205,25 +221,37 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
             DataColumn(label: Text('Azioni')),
           ],
           rows: provider.installments.map((installment) {
-            return DataRow(cells: [
-              DataCell(Text(installment.tenantName)),
-              DataCell(Text(
-                  'ciclo ${installment.cycleNumber} · ${installment.label}')),
-              DataCell(Text(installment.dueDate == null
-                  ? '-'
-                  : _dateFormat.format(installment.dueDate!))),
-              DataCell(Text(
-                installment.periodStart == null || installment.periodEnd == null
-                    ? '-'
-                    : '${_dateFormat.format(installment.periodStart!)} - '
-                        '${_dateFormat.format(installment.periodEnd!)}',
-                style: const TextStyle(fontSize: 12),
-              )),
-              DataCell(Text(_currency.format(installment.totalAmount))),
-              DataCell(_statusBadge(installment)),
-              DataCell(Text(installment.invoiceNumber ?? '—')),
-              DataCell(_actions(installment)),
-            ]);
+            return DataRow(
+              cells: [
+                DataCell(Text(installment.tenantName)),
+                DataCell(
+                  Text(
+                    'ciclo ${installment.cycleNumber} · ${installment.label}',
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    installment.dueDate == null
+                        ? '-'
+                        : _dateFormat.format(installment.dueDate!),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    installment.periodStart == null ||
+                            installment.periodEnd == null
+                        ? '-'
+                        : '${_dateFormat.format(installment.periodStart!)} - '
+                              '${_dateFormat.format(installment.periodEnd!)}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                DataCell(Text(_currency.format(installment.totalAmount))),
+                DataCell(_statusBadge(installment)),
+                DataCell(Text(installment.invoiceNumber ?? '—')),
+                DataCell(_actions(installment)),
+              ],
+            );
           }).toList(),
         ),
       ),

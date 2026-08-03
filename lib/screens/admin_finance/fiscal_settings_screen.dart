@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
 import '../../utils/error_handler.dart';
+import '../layout/main_layout.dart';
 
 /// Impostazioni fiscali dell'azienda.
 ///
@@ -60,10 +61,25 @@ class _FiscalSettingsScreenState extends State<FiscalSettingsScreen> {
   @override
   void dispose() {
     for (final controller in [
-      _businessName, _vatNumber, _fiscalCode, _address, _zipCode, _city,
-      _province, _email, _iban, _rea, _shareCapital, _vatDefaultRate,
-      _quarterlyInterestRate, _incomeTaxRate, _irapRate, _inpsRate,
-      _extraProvision, _invoicePrefix, _paymentTermsDays,
+      _businessName,
+      _vatNumber,
+      _fiscalCode,
+      _address,
+      _zipCode,
+      _city,
+      _province,
+      _email,
+      _iban,
+      _rea,
+      _shareCapital,
+      _vatDefaultRate,
+      _quarterlyInterestRate,
+      _incomeTaxRate,
+      _irapRate,
+      _inpsRate,
+      _extraProvision,
+      _invoicePrefix,
+      _paymentTermsDays,
     ]) {
       controller.dispose();
     }
@@ -92,8 +108,8 @@ class _FiscalSettingsScreenState extends State<FiscalSettingsScreen> {
 
     _vatPeriodType = settings.vatPeriodType;
     _vatDefaultRate.text = settings.vatDefaultRate.toStringAsFixed(2);
-    _quarterlyInterestRate.text =
-        settings.quarterlyInterestRate.toStringAsFixed(2);
+    _quarterlyInterestRate.text = settings.quarterlyInterestRate
+        .toStringAsFixed(2);
     _incomeTaxRate.text = settings.incomeTaxRate.toStringAsFixed(2);
     _irapRate.text = settings.irapRate.toStringAsFixed(2);
     _inpsRate.text = settings.inpsRate.toStringAsFixed(2);
@@ -110,8 +126,10 @@ class _FiscalSettingsScreenState extends State<FiscalSettingsScreen> {
     final ok = await provider.saveFiscalSettings({
       'vat_period_type': _vatPeriodType,
       'vat_default_rate': _vatDefaultRate.text.replaceAll(',', '.'),
-      'quarterly_interest_rate':
-          _quarterlyInterestRate.text.replaceAll(',', '.'),
+      'quarterly_interest_rate': _quarterlyInterestRate.text.replaceAll(
+        ',',
+        '.',
+      ),
       'income_tax_rate': _incomeTaxRate.text.replaceAll(',', '.'),
       'irap_rate': _irapRate.text.replaceAll(',', '.'),
       'inps_rate': _inpsRate.text.replaceAll(',', '.'),
@@ -139,7 +157,9 @@ class _FiscalSettingsScreenState extends State<FiscalSettingsScreen> {
       ApiErrorHandler.showSuccessSnackbar(context, 'Impostazioni salvate');
     } else {
       ApiErrorHandler.showErrorMessage(
-          context, provider.error ?? 'Salvataggio non riuscito');
+        context,
+        provider.error ?? 'Salvataggio non riuscito',
+      );
     }
   }
 
@@ -149,146 +169,178 @@ class _FiscalSettingsScreenState extends State<FiscalSettingsScreen> {
     final settings = provider.fiscalSettings;
     if (settings != null) _hydrate(settings);
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Impostazioni fiscali',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const Spacer(),
-              FilledButton.icon(
-                onPressed: settings == null ? null : _save,
-                icon: const Icon(Icons.save),
-                label: const Text('Salva'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (settings == null)
-            Expanded(
-              child: Center(
-                child: provider.isLoading
-                    ? const CircularProgressIndicator()
-                    : Text(provider.error ?? 'Impostazioni non disponibili'),
-              ),
-            )
-          else
-            Expanded(
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (!settings.isCompanySnapshotComplete)
-                        Card(
-                          color: Colors.orange.withValues(alpha: 0.12),
-                          child: const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Icon(Icons.warning_amber, color: Colors.orange),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Intestazione incompleta: le fatture verranno '
-                                    'emesse senza i dati del fornitore. Compila '
-                                    'almeno ragione sociale e partita IVA.',
+    return MainLayout(
+      title: 'Impostazioni fiscali',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: settings == null ? null : _save,
+                  icon: const Icon(Icons.save),
+                  label: const Text('Salva'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (settings == null)
+              Expanded(
+                child: Center(
+                  child: provider.isLoading
+                      ? const CircularProgressIndicator()
+                      : Text(provider.error ?? 'Impostazioni non disponibili'),
+                ),
+              )
+            else
+              Expanded(
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (!settings.isCompanySnapshotComplete)
+                          Card(
+                            color: Colors.orange.withValues(alpha: 0.12),
+                            child: const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.warning_amber,
+                                    color: Colors.orange,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'Intestazione incompleta: le fatture verranno '
+                                      'emesse senza i dati del fornitore. Compila '
+                                      'almeno ragione sociale e partita IVA.',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
+                        _card('Intestazione in fattura', [
+                          _text(
+                            _businessName,
+                            'Ragione sociale',
+                            required: true,
+                          ),
+                          _text(_vatNumber, 'Partita IVA', required: true),
+                          _text(_fiscalCode, 'Codice fiscale'),
+                          _text(_address, 'Indirizzo', flex: 2),
+                          _text(_zipCode, 'CAP'),
+                          _text(_city, 'Città'),
+                          _text(_province, 'Provincia'),
+                          _text(_email, 'Email'),
+                          _text(_iban, 'IBAN', flex: 2),
+                          _text(_rea, 'REA'),
+                          _text(_shareCapital, 'Capitale sociale'),
+                        ]),
+                        const SizedBox(height: 16),
+                        _card('Fatturazione', [
+                          _text(_invoicePrefix, 'Prefisso numerazione'),
+                          _text(
+                            _paymentTermsDays,
+                            'Giorni di anticipo emissione fattura',
+                            numeric: true,
+                          ),
+                          SizedBox(
+                            width: 260,
+                            child: DropdownButtonFormField<int?>(
+                              initialValue: _mainCashAccountId,
+                              decoration: const InputDecoration(
+                                labelText: 'Conto d\'incasso predefinito',
+                                border: OutlineInputBorder(),
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Nessuno'),
+                                ),
+                                ...provider.accounts.map(
+                                  (account) => DropdownMenuItem<int?>(
+                                    value: account.id,
+                                    child: Text(account.name),
                                   ),
                                 ),
                               ],
+                              onChanged: (value) =>
+                                  setState(() => _mainCashAccountId = value),
                             ),
                           ),
-                        ),
-                      const SizedBox(height: 12),
-                      _card('Intestazione in fattura', [
-                        _text(_businessName, 'Ragione sociale', required: true),
-                        _text(_vatNumber, 'Partita IVA', required: true),
-                        _text(_fiscalCode, 'Codice fiscale'),
-                        _text(_address, 'Indirizzo', flex: 2),
-                        _text(_zipCode, 'CAP'),
-                        _text(_city, 'Città'),
-                        _text(_province, 'Provincia'),
-                        _text(_email, 'Email'),
-                        _text(_iban, 'IBAN', flex: 2),
-                        _text(_rea, 'REA'),
-                        _text(_shareCapital, 'Capitale sociale'),
-                      ]),
-                      const SizedBox(height: 16),
-                      _card('Fatturazione', [
-                        _text(_invoicePrefix, 'Prefisso numerazione'),
-                        _text(_paymentTermsDays,
-                            'Giorni di anticipo emissione fattura',
-                            numeric: true),
-                        SizedBox(
-                          width: 260,
-                          child: DropdownButtonFormField<int?>(
-                            initialValue: _mainCashAccountId,
-                            decoration: const InputDecoration(
-                                labelText: 'Conto d\'incasso predefinito',
-                                border: OutlineInputBorder()),
-                            items: [
-                              const DropdownMenuItem<int?>(
-                                  value: null, child: Text('Nessuno')),
-                              ...provider.accounts.map((account) =>
-                                  DropdownMenuItem<int?>(
-                                      value: account.id,
-                                      child: Text(account.name))),
-                            ],
-                            onChanged: (value) =>
-                                setState(() => _mainCashAccountId = value),
-                          ),
-                        ),
-                      ]),
-                      const SizedBox(height: 16),
-                      _card('Aliquote e accantonamenti', [
-                        SizedBox(
-                          width: 260,
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _vatPeriodType,
-                            decoration: const InputDecoration(
+                        ]),
+                        const SizedBox(height: 16),
+                        _card('Aliquote e accantonamenti', [
+                          SizedBox(
+                            width: 260,
+                            child: DropdownButtonFormField<String>(
+                              initialValue: _vatPeriodType,
+                              decoration: const InputDecoration(
                                 labelText: 'Periodicità IVA',
-                                border: OutlineInputBorder()),
-                            items: const [
-                              DropdownMenuItem(
-                                  value: 'monthly', child: Text('Mensile')),
-                              DropdownMenuItem(
+                                border: OutlineInputBorder(),
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'monthly',
+                                  child: Text('Mensile'),
+                                ),
+                                DropdownMenuItem(
                                   value: 'quarterly',
-                                  child: Text('Trimestrale')),
-                            ],
-                            onChanged: (value) => setState(
-                                () => _vatPeriodType = value ?? 'quarterly'),
+                                  child: Text('Trimestrale'),
+                                ),
+                              ],
+                              onChanged: (value) => setState(
+                                () => _vatPeriodType = value ?? 'quarterly',
+                              ),
+                            ),
                           ),
+                          _text(
+                            _vatDefaultRate,
+                            'IVA di default %',
+                            numeric: true,
+                          ),
+                          _text(
+                            _quarterlyInterestRate,
+                            'Interessi trimestrali %',
+                            numeric: true,
+                          ),
+                          _text(
+                            _incomeTaxRate,
+                            'Imposta sul reddito %',
+                            numeric: true,
+                          ),
+                          _text(_irapRate, 'IRAP %', numeric: true),
+                          _text(_inpsRate, 'INPS %', numeric: true),
+                          _text(
+                            _extraProvision,
+                            'Cuscinetto prudenziale %',
+                            numeric: true,
+                          ),
+                        ]),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Aliquota complessiva usata per la stima imposte: '
+                          '${settings.totalTaxRate.toStringAsFixed(2)}%. '
+                          'Confermala con il commercialista prima della prima '
+                          'liquidazione.',
+                          style: const TextStyle(color: Colors.grey),
                         ),
-                        _text(_vatDefaultRate, 'IVA di default %',
-                            numeric: true),
-                        _text(_quarterlyInterestRate,
-                            'Interessi trimestrali %', numeric: true),
-                        _text(_incomeTaxRate, 'Imposta sul reddito %',
-                            numeric: true),
-                        _text(_irapRate, 'IRAP %', numeric: true),
-                        _text(_inpsRate, 'INPS %', numeric: true),
-                        _text(_extraProvision, 'Cuscinetto prudenziale %',
-                            numeric: true),
-                      ]),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Aliquota complessiva usata per la stima imposte: '
-                        '${settings.totalTaxRate.toStringAsFixed(2)}%. '
-                        'Confermala con il commercialista prima della prima '
-                        'liquidazione.',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -309,15 +361,22 @@ class _FiscalSettingsScreenState extends State<FiscalSettingsScreen> {
     );
   }
 
-  Widget _text(TextEditingController controller, String label,
-      {bool required = false, bool numeric = false, int flex = 1}) {
+  Widget _text(
+    TextEditingController controller,
+    String label, {
+    bool required = false,
+    bool numeric = false,
+    int flex = 1,
+  }) {
     return SizedBox(
       width: flex == 2 ? 440 : 260,
       child: TextFormField(
         controller: controller,
         keyboardType: numeric ? TextInputType.number : TextInputType.text,
         decoration: InputDecoration(
-            labelText: label, border: const OutlineInputBorder()),
+          labelText: label,
+          border: const OutlineInputBorder(),
+        ),
         validator: (value) {
           if (required && (value == null || value.trim().isEmpty)) {
             return 'Campo obbligatorio';

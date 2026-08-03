@@ -94,13 +94,18 @@ class _MarkPaidDialogState extends State<MarkPaidDialog> {
                 DropdownButtonFormField<String>(
                   initialValue: _paymentMethod,
                   decoration: const InputDecoration(
-                      labelText: 'Metodo di pagamento',
-                      border: OutlineInputBorder()),
+                    labelText: 'Metodo di pagamento',
+                    border: OutlineInputBorder(),
+                  ),
                   items: const [
                     DropdownMenuItem(
-                        value: 'bank_transfer', child: Text('Bonifico')),
+                      value: 'bank_transfer',
+                      child: Text('Bonifico'),
+                    ),
                     DropdownMenuItem(
-                        value: 'credit_card', child: Text('Carta di credito')),
+                      value: 'credit_card',
+                      child: Text('Carta di credito'),
+                    ),
                     DropdownMenuItem(value: 'paypal', child: Text('PayPal')),
                     DropdownMenuItem(value: 'stripe', child: Text('Stripe')),
                     DropdownMenuItem(value: 'cash', child: Text('Contanti')),
@@ -114,8 +119,9 @@ class _MarkPaidDialogState extends State<MarkPaidDialog> {
                   onTap: _pickDate,
                   child: InputDecorator(
                     decoration: const InputDecoration(
-                        labelText: 'Data incasso',
-                        border: OutlineInputBorder()),
+                      labelText: 'Data incasso',
+                      border: OutlineInputBorder(),
+                    ),
                     child: Text(_dateFormat.format(_paidDate)),
                   ),
                 ),
@@ -123,12 +129,17 @@ class _MarkPaidDialogState extends State<MarkPaidDialog> {
                 DropdownButtonFormField<int>(
                   initialValue: _cashAccountId,
                   decoration: const InputDecoration(
-                      labelText: 'Conto di accredito',
-                      helperText: 'Se vuoto si usa il conto principale',
-                      border: OutlineInputBorder()),
+                    labelText: 'Conto di accredito',
+                    helperText: 'Se vuoto si usa il conto principale',
+                    border: OutlineInputBorder(),
+                  ),
                   items: accounts
-                      .map((account) => DropdownMenuItem(
-                          value: account.id, child: Text(account.name)))
+                      .map(
+                        (account) => DropdownMenuItem(
+                          value: account.id,
+                          child: Text(account.name),
+                        ),
+                      )
                       .toList(),
                   onChanged: (value) => setState(() => _cashAccountId = value),
                 ),
@@ -136,21 +147,26 @@ class _MarkPaidDialogState extends State<MarkPaidDialog> {
                 TextFormField(
                   controller: _referenceController,
                   decoration: const InputDecoration(
-                      labelText: 'Riferimento (CRO, ID transazione)',
-                      border: OutlineInputBorder()),
+                    labelText: 'Riferimento (CRO, ID transazione)',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _notesController,
                   maxLines: 2,
                   decoration: const InputDecoration(
-                      labelText: 'Note', border: OutlineInputBorder()),
+                    labelText: 'Note',
+                    border: OutlineInputBorder(),
+                  ),
                 ),
                 const SizedBox(height: 8),
                 ExpansionTile(
                   title: const Text('Opzioni avanzate'),
-                  subtitle: const Text('Solo per recuperare incassi storici',
-                      style: TextStyle(fontSize: 12)),
+                  subtitle: const Text(
+                    'Solo per recuperare incassi storici',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   initiallyExpanded: _showAdvanced,
                   onExpansionChanged: (value) =>
                       setState(() => _showAdvanced = value),
@@ -202,16 +218,23 @@ class _MarkPaidDialogState extends State<MarkPaidDialog> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(installment.tenantName,
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              installment.tenantName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 4),
-            Text('Rata ${installment.label} · ciclo ${installment.cycleNumber}'),
-            Text('Imponibile ${_currency.format(installment.amount)} + IVA '
-                '${_currency.format(installment.vatAmount)}'),
+            Text(
+              'Rata ${installment.label} · ciclo ${installment.cycleNumber}',
+            ),
+            Text(
+              'Imponibile ${_currency.format(installment.amount)} + IVA '
+              '${_currency.format(installment.vatAmount)}',
+            ),
             const SizedBox(height: 4),
-            Text(_currency.format(installment.totalAmount),
-                style: const TextStyle(
-                    fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              _currency.format(installment.totalAmount),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             if (installment.periodEnd != null) ...[
               const SizedBox(height: 6),
               Text(

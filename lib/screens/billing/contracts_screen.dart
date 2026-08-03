@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/billing_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../layout/main_layout.dart';
 
 /// Elenco dei contratti attivi, con impegno, valore e commerciale.
 class ContractsScreen extends StatefulWidget {
@@ -27,94 +28,110 @@ class _ContractsScreenState extends State<ContractsScreen> {
   }
 
   void _load() {
-    context
-        .read<BillingProvider>()
-        .loadContracts(page: _page, status: _statusFilter);
+    context.read<BillingProvider>().loadContracts(
+      page: _page,
+      status: _statusFilter,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<BillingProvider>();
 
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text('Contratti',
-                  style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(width: 16),
-              Text('${provider.contractsCount} totali',
-                  style: const TextStyle(color: Colors.grey)),
-              const Spacer(),
-              IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              _filterChip('Attivi', 'active'),
-              _filterChip('Conclusi', 'completed'),
-              _filterChip('Cessati', 'terminated'),
-              _filterChip('Tutti', null),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (provider.isLoading)
-            const LinearProgressIndicator()
-          else if (provider.error != null)
-            Text(provider.error!, style: const TextStyle(color: Colors.red))
-          else if (provider.contracts.isEmpty)
-            const Expanded(child: Center(child: Text('Nessun contratto')))
-          else
-            Expanded(
-              child: Card(
-                child: SingleChildScrollView(
-                  child: DataTable(
-                    showCheckboxColumn: false,
-                    columns: const [
-                      DataColumn(label: Text('Cliente')),
-                      DataColumn(label: Text('Piano')),
-                      DataColumn(label: Text('Impegno')),
-                      DataColumn(label: Text('Rate')),
-                      DataColumn(label: Text('Anno')),
-                      DataColumn(label: Text('Canone annuo'), numeric: true),
-                      DataColumn(label: Text('Scadenza')),
-                      DataColumn(label: Text('Commerciale')),
-                      DataColumn(label: Text('Stato')),
-                    ],
-                    rows: provider.contracts.map((contract) {
-                      return DataRow(
-                        onSelectChanged: (_) => context
-                            .read<NavigationProvider>()
-                            .navigateToContractDetail(contract.id),
-                        cells: [
-                          DataCell(Text(contract.tenantName)),
-                          DataCell(Text(contract.quotaTypeCode ?? '—')),
-                          DataCell(Text(contract.commitmentLabel)),
-                          DataCell(Text(contract.installmentCount == 1
-                              ? 'saldo unico'
-                              : '${contract.installmentCount} rate')),
-                          DataCell(Text(
-                              '${contract.currentCycle}/${contract.totalCycles}')),
-                          DataCell(
-                              Text(_currency.format(contract.annualTotal))),
-                          DataCell(Text(contract.endDate == null
-                              ? '-'
-                              : _dateFormat.format(contract.endDate!))),
-                          DataCell(Text(contract.salespersonName ?? '—')),
-                          DataCell(Text(contract.statusDisplay)),
-                        ],
-                      );
-                    }).toList(),
+    return MainLayout(
+      title: 'Contratti',
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 16),
+                Text(
+                  '${provider.contractsCount} totali',
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                const Spacer(),
+                IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                _filterChip('Attivi', 'active'),
+                _filterChip('Conclusi', 'completed'),
+                _filterChip('Cessati', 'terminated'),
+                _filterChip('Tutti', null),
+              ],
+            ),
+            const SizedBox(height: 16),
+            if (provider.isLoading)
+              const LinearProgressIndicator()
+            else if (provider.error != null)
+              Text(provider.error!, style: const TextStyle(color: Colors.red))
+            else if (provider.contracts.isEmpty)
+              const Expanded(child: Center(child: Text('Nessun contratto')))
+            else
+              Expanded(
+                child: Card(
+                  child: SingleChildScrollView(
+                    child: DataTable(
+                      showCheckboxColumn: false,
+                      columns: const [
+                        DataColumn(label: Text('Cliente')),
+                        DataColumn(label: Text('Piano')),
+                        DataColumn(label: Text('Impegno')),
+                        DataColumn(label: Text('Rate')),
+                        DataColumn(label: Text('Anno')),
+                        DataColumn(label: Text('Canone annuo'), numeric: true),
+                        DataColumn(label: Text('Scadenza')),
+                        DataColumn(label: Text('Commerciale')),
+                        DataColumn(label: Text('Stato')),
+                      ],
+                      rows: provider.contracts.map((contract) {
+                        return DataRow(
+                          onSelectChanged: (_) => context
+                              .read<NavigationProvider>()
+                              .navigateToContractDetail(contract.id),
+                          cells: [
+                            DataCell(Text(contract.tenantName)),
+                            DataCell(Text(contract.quotaTypeCode ?? '—')),
+                            DataCell(Text(contract.commitmentLabel)),
+                            DataCell(
+                              Text(
+                                contract.installmentCount == 1
+                                    ? 'saldo unico'
+                                    : '${contract.installmentCount} rate',
+                              ),
+                            ),
+                            DataCell(
+                              Text(
+                                '${contract.currentCycle}/${contract.totalCycles}',
+                              ),
+                            ),
+                            DataCell(
+                              Text(_currency.format(contract.annualTotal)),
+                            ),
+                            DataCell(
+                              Text(
+                                contract.endDate == null
+                                    ? '-'
+                                    : _dateFormat.format(contract.endDate!),
+                              ),
+                            ),
+                            DataCell(Text(contract.salespersonName ?? '—')),
+                            DataCell(Text(contract.statusDisplay)),
+                          ],
+                        );
+                      }).toList(),
+                    ),
                   ),
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
