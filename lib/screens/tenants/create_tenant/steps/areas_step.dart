@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../config/theme.dart';
 import '../../../../models/area_request.dart';
 import '../../../../utils/validators.dart';
+import '../../widgets/area_location_form.dart';
 
 /// Step 3: Aree
 class AreasStep extends StatefulWidget {
@@ -57,46 +58,95 @@ class _AreasStepState extends State<AreasStep> {
     });
   }
 
-  void _editArea(int index) {
+  /// Nome e indirizzo della sede.
+  ///
+  /// L'indirizzo si compila gia' qui e non dopo la creazione: e' il dato che
+  /// il cliente vede quando sceglie dove prenotare.
+  Future<void> _editArea(int index) async {
     final area = _areas[index];
-    _areaNameController.text = area.name;
+    final nameController = TextEditingController(text: area.name);
+    final formKey = GlobalKey<FormState>();
+    final locationKey = GlobalKey<AreaLocationFormState>();
 
-    showDialog(
+    final updated = await showDialog<AreaRequest>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Modifica Area'),
-        content: Form(
-          key: _formKey,
-          child: TextFormField(
-            controller: _areaNameController,
-            decoration: const InputDecoration(
-              labelText: 'Nome Area',
-              hintText: 'es: Piano Terra',
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Sede'),
+        content: SizedBox(
+          width: 560,
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nome Area',
+                      hintText: 'es: Piano Terra',
+                    ),
+                    validator: (value) =>
+                        Validators.minLength(value, 2, 'Nome area'),
+                    autofocus: true,
+                  ),
+                  const SizedBox(height: 24),
+                  const Text('Indirizzo (facoltativo)',
+                      style: AppTextStyles.body),
+                  const SizedBox(height: 12),
+                  AreaLocationForm(
+                    key: locationKey,
+                    initialLocation: area.toJson(),
+                    prefillCountry: !area.hasLocation,
+                  ),
+                ],
+              ),
             ),
-            validator: (value) => Validators.minLength(value, 2, 'Nome area'),
-            autofocus: true,
           ),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Annulla'),
           ),
           ElevatedButton(
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                setState(() {
-                  _areas[index] = AreaRequest(name: _areaNameController.text.trim());
-                  _areaNameController.clear();
-                });
-                Navigator.pop(context);
+              if (!formKey.currentState!.validate()) return;
+              final error = locationKey.currentState?.validate();
+              if (error != null) {
+                ScaffoldMessenger.of(dialogContext).showSnackBar(
+                  SnackBar(
+                      content: Text(error),
+                      backgroundColor: AppColors.error),
+                );
+                return;
               }
+              final payload = locationKey.currentState?.toPayload() ?? {};
+              Navigator.pop(
+                dialogContext,
+                AreaRequest(
+                  name: nameController.text.trim(),
+                  street: payload['street'],
+                  streetNumber: payload['street_number'],
+                  postalCode: payload['postal_code'],
+                  city: payload['city'],
+                  province: payload['province'],
+                  country: payload['country'],
+                  latitude: payload['latitude']?.toString(),
+                  longitude: payload['longitude']?.toString(),
+                ),
+              );
             },
             child: const Text('Salva'),
           ),
         ],
       ),
     );
+
+    nameController.dispose();
+    if (updated == null) return;
+    setState(() => _areas[index] = updated);
   }
 
   void _handleNext() {
@@ -129,7 +179,9 @@ class _AreasStepState extends State<AreasStep> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Crea le aree operative del salone (minimo 1, massimo 10)',
+                  'Crea le aree operative del salone (minimo 1, massimo 10). '
+                  'Tocca una sede per aggiungerne l\'indirizzo: e\' quello che '
+                  'il cliente vede quando sceglie dove prenotare.',
                   style: AppTextStyles.caption,
                 ),
                 const SizedBox(height: 32),
@@ -227,15 +279,19 @@ class _AreasStepState extends State<AreasStep> {
                             ),
                           ),
                           title: Text(area.name),
-                          subtitle: isMainArea
-                              ? const Text(
-                                  'Area principale (non modificabile)',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                )
-                              : null,
+                          subtitle: Text(
+                            isMainArea
+                                // Non e' un luogo fisico: e' il contenitore
+                                // del tenant, il backend rifiuta un indirizzo.
+                                ? 'Area principale (senza indirizzo)'
+                                : area.hasLocation
+                                    ? area.shortAddress
+                                    : 'Indirizzo non indicato',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [

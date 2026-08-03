@@ -47,8 +47,8 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
   String _billingType = 'trial';
   int _billingDuration = 1;
   Map<String, dynamic>? _contractConfig;
+  Map<String, dynamic>? _billingProfile;
   List<AreaRequest> _areas = [];
-  String? _registeredOffice;
   late ThemeRequest _theme; // Non più opzionale
 
   final List<String> _stepTitles = [
@@ -125,12 +125,14 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
     required String billingType,
     required int billingDuration,
     Map<String, dynamic>? contractConfig,
+    Map<String, dynamic>? billingProfile,
   }) {
     setState(() {
       _quotaTypeCode = quotaTypeCode;
       _billingType = billingType;
       _billingDuration = billingDuration;
       _contractConfig = contractConfig;
+      _billingProfile = billingProfile;
     });
     _nextStep();
   }
@@ -144,13 +146,9 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
     _nextStep();
   }
 
-  void _updateStep5Data({
-    required ThemeRequest theme,
-    String? registeredOffice,
-  }) {
+  void _updateStep5Data({required ThemeRequest theme}) {
     setState(() {
       _theme = theme;
-      _registeredOffice = registeredOffice;
     });
     _nextStep();
   }
@@ -182,7 +180,8 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
       billingType: _billingType,
       billingDuration: _billingDuration,
       areas: _areas,
-      registeredOffice: _registeredOffice,
+      // La sede legale non si digita piu' qui: la deriva il backend dal
+      // profilo di fatturazione, che e' anche quello che finisce in fattura.
       theme: _theme,
       apiVersion: apiVersion,
     );
@@ -199,6 +198,24 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
       );
 
       if (response != null && mounted) {
+        // Dati fiscali prima del contratto: la fattura della prima rata li
+        // pretende, e senza il backend salta l'emissione.
+        if (_billingProfile != null) {
+          final saved = await billingProvider.saveBillingProfile(
+            response.tenant.id,
+            _billingProfile!,
+          );
+          if (!saved && mounted) {
+            ApiErrorHandler.showErrorMessage(
+              context,
+              'Tenant creato, ma i dati di fatturazione non sono stati '
+              'salvati: ${billingProvider.error ?? 'errore sconosciuto'}. '
+              'Compilali dalla scheda del tenant, altrimenti le fatture non '
+              'vengono emesse.',
+            );
+          }
+        }
+
         // Il contratto si crea DOPO il tenant e non deve poterlo far fallire:
         // se qualcosa va storto lo si sottoscrive dalla scheda del tenant
         if (_contractConfig != null) {
@@ -274,7 +291,6 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
       case 5:
         return ThemeStep(
           initialTheme: _theme,
-          initialRegisteredOffice: _registeredOffice,
           onNext: _updateStep5Data,
         );
       case 6:
@@ -290,7 +306,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
           billingType: _billingType,
           billingDuration: _billingDuration,
           areas: _areas,
-          registeredOffice: _registeredOffice,
+          billingProfile: _billingProfile,
           theme: _theme,
           onSubmit: _submitTenant,
         );

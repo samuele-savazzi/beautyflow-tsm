@@ -7,16 +7,11 @@ import '../../../../utils/validators.dart';
 /// Step 4: Theme Selection (obbligatorio con temi predefiniti)
 class ThemeStep extends StatefulWidget {
   final ThemeRequest? initialTheme;
-  final String? initialRegisteredOffice;
-  final Function({
-    required ThemeRequest theme,
-    String? registeredOffice,
-  }) onNext;
+  final Function({required ThemeRequest theme}) onNext;
 
   const ThemeStep({
     super.key,
     this.initialTheme,
-    this.initialRegisteredOffice,
     required this.onNext,
   });
 
@@ -26,7 +21,6 @@ class ThemeStep extends StatefulWidget {
 
 class _ThemeStepState extends State<ThemeStep> {
   late int _selectedThemeIndex;
-  late TextEditingController _registeredOfficeController;
 
   final _formKey = GlobalKey<FormState>();
 
@@ -45,16 +39,6 @@ class _ThemeStepState extends State<ThemeStep> {
         }
       }
     }
-
-    _registeredOfficeController = TextEditingController(
-      text: widget.initialRegisteredOffice ?? '',
-    );
-  }
-
-  @override
-  void dispose() {
-    _registeredOfficeController.dispose();
-    super.dispose();
   }
 
   Color _parseColor(String hex) {
@@ -67,12 +51,7 @@ class _ThemeStepState extends State<ThemeStep> {
 
   void _handleNext() {
     if (_formKey.currentState!.validate()) {
-      widget.onNext(
-        theme: predefinedThemes[_selectedThemeIndex].themeData,
-        registeredOffice: _registeredOfficeController.text.trim().isNotEmpty
-            ? _registeredOfficeController.text.trim()
-            : null,
-      );
+      widget.onNext(theme: predefinedThemes[_selectedThemeIndex].themeData);
     }
   }
 
@@ -95,21 +74,6 @@ class _ThemeStepState extends State<ThemeStep> {
               style: AppTextStyles.caption,
             ),
             const SizedBox(height: 32),
-
-            // Registered Office
-            TextFormField(
-              controller: _registeredOfficeController,
-              decoration: const InputDecoration(
-                labelText: 'Sede Legale (Opzionale)',
-                hintText: 'Via del Corso 100, Roma',
-                prefixIcon: Icon(Icons.location_on),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 32),
-
-            const Divider(),
-            const SizedBox(height: 24),
 
             // Theme Selection Title
             const Text(

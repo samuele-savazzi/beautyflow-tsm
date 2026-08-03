@@ -6,10 +6,20 @@ import '../../../models/area_detail.dart';
 /// Campi indirizzo di una sede, condivisi da "crea sede" e "modifica
 /// indirizzo": due form separati divergerebbero alla prima modifica.
 class AreaLocationForm extends StatefulWidget {
-  const AreaLocationForm({super.key, this.area, this.prefillCountry = false});
+  const AreaLocationForm({
+    super.key,
+    this.area,
+    this.initialLocation,
+    this.prefillCountry = false,
+  });
 
   /// Sede esistente da cui precompilare i campi. Null in creazione.
   final AreaDetail? area;
+
+  /// Valori iniziali quando la sede non esiste ancora lato backend (wizard di
+  /// creazione tenant): stesse chiavi di `toPayload()`. Ignorato se `area`
+  /// e' valorizzata.
+  final Map<String, dynamic>? initialLocation;
 
   /// In creazione precompiliamo "Italia"; il modello lato backend non ha
   /// default, cosi' l'area principale resta davvero vuota.
@@ -33,19 +43,30 @@ class AreaLocationFormState extends State<AreaLocationForm> {
   void initState() {
     super.initState();
     final a = widget.area;
-    _street = TextEditingController(text: a?.street ?? '');
-    _streetNumber = TextEditingController(text: a?.streetNumber ?? '');
-    _postalCode = TextEditingController(text: a?.postalCode ?? '');
-    _city = TextEditingController(text: a?.city ?? '');
-    _province = TextEditingController(text: a?.province ?? '');
+    final initial = a == null ? (widget.initialLocation ?? const {}) : const {};
+    String from(String key, String? fromArea) =>
+        fromArea ?? initial[key]?.toString() ?? '';
+
+    _street = TextEditingController(text: from('street', a?.street));
+    _streetNumber =
+        TextEditingController(text: from('street_number', a?.streetNumber));
+    _postalCode = TextEditingController(text: from('postal_code', a?.postalCode));
+    _city = TextEditingController(text: from('city', a?.city));
+    _province = TextEditingController(text: from('province', a?.province));
     _country = TextEditingController(
-      text: a?.country ?? (widget.prefillCountry ? 'Italia' : ''),
+      text: a?.country ??
+          initial['country']?.toString() ??
+          (widget.prefillCountry ? 'Italia' : ''),
     );
     _latitude = TextEditingController(
-      text: a?.latitude != null ? '${a!.latitude}' : '',
+      text: a?.latitude != null
+          ? '${a!.latitude}'
+          : (initial['latitude']?.toString() ?? ''),
     );
     _longitude = TextEditingController(
-      text: a?.longitude != null ? '${a!.longitude}' : '',
+      text: a?.longitude != null
+          ? '${a!.longitude}'
+          : (initial['longitude']?.toString() ?? ''),
     );
   }
 

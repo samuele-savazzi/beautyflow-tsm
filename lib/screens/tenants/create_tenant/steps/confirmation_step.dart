@@ -19,7 +19,7 @@ class ConfirmationStep extends StatelessWidget {
   final String billingType;
   final int billingDuration;
   final List<AreaRequest> areas;
-  final String? registeredOffice;
+  final Map<String, dynamic>? billingProfile;
   final ThemeRequest theme;
   final VoidCallback onSubmit;
 
@@ -36,7 +36,7 @@ class ConfirmationStep extends StatelessWidget {
     required this.billingType,
     required this.billingDuration,
     required this.areas,
-    this.registeredOffice,
+    this.billingProfile,
     required this.theme,
     required this.onSubmit,
   });
@@ -124,8 +124,6 @@ class ConfirmationStep extends StatelessWidget {
                     _buildInfoRow('Nome', name),
                     _buildInfoRow('Dominio', '$domain.beautyflow.it'),
                     _buildInfoRow('Tipo Attività', _getTenantTypeName()),
-                    if (registeredOffice != null)
-                      _buildInfoRow('Sede Legale', registeredOffice!),
                   ],
                 ),
 
@@ -151,6 +149,16 @@ class ConfirmationStep extends StatelessWidget {
                   children: [
                     _buildInfoRow('Piano', _getQuotaTypeName()),
                     _buildInfoRow('Tipo Fatturazione', _getBillingTypeName()),
+                    // La sede legale del tenant viene derivata da questi dati
+                    _buildInfoRow(
+                      'Dati fiscali',
+                      billingProfile == null
+                          ? 'Da compilare dopo (le fatture non partono finche\' mancano)'
+                          : [
+                              billingProfile!['business_name'],
+                              billingProfile!['vat_number'],
+                            ].where((v) => v != null && '$v'.isNotEmpty).join(' - '),
+                    ),
                   ],
                 ),
 

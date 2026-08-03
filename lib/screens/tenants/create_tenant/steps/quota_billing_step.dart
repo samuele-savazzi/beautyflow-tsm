@@ -15,6 +15,7 @@ class QuotaBillingStep extends StatefulWidget {
     required String billingType,
     required int billingDuration,
     Map<String, dynamic>? contractConfig,
+    Map<String, dynamic>? billingProfile,
   }) onNext;
 
   const QuotaBillingStep({
@@ -41,6 +42,20 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
   int? _salespersonId;
   DateTime _contractStart = DateTime.now();
 
+  // Dati fiscali: senza questi la fattura non parte, il backend rifiuta
+  // l'emissione. Obbligatori solo se si sottoscrive subito un contratto.
+  final _businessName = TextEditingController();
+  final _vatNumber = TextEditingController();
+  final _fiscalCode = TextEditingController();
+  final _sdiCode = TextEditingController();
+  final _pec = TextEditingController();
+  final _billingEmail = TextEditingController();
+  final _billingAddress = TextEditingController();
+  final _billingZip = TextEditingController();
+  final _billingCity = TextEditingController();
+  final _billingProvince = TextEditingController();
+  String? _billingError;
+
   @override
   void initState() {
     super.initState();
@@ -63,13 +78,56 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     });
   }
 
+  @override
+  void dispose() {
+    for (final controller in [
+      _businessName, _vatNumber, _fiscalCode, _sdiCode, _pec, _billingEmail,
+      _billingAddress, _billingZip, _billingCity, _billingProvince,
+    ]) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   void _handleNext() {
+    final contractConfig = _buildContractConfig();
+
+    // Con un contratto attivo ma senza ragione sociale le rate nascono e la
+    // fattura non parte mai: meglio fermarsi qui che scoprirlo dai log.
+    if (contractConfig != null && _businessName.text.trim().isEmpty) {
+      setState(() => _billingError =
+          'Con un contratto attivo servono i dati fiscali: senza ragione '
+          'sociale la fattura non può essere emessa');
+      return;
+    }
+    setState(() => _billingError = null);
+
     widget.onNext(
       quotaTypeCode: _selectedQuotaType,
       billingType: _selectedBillingType,
       billingDuration: _billingDuration,
-      contractConfig: _buildContractConfig(),
+      contractConfig: contractConfig,
+      billingProfile: _buildBillingProfile(),
     );
+  }
+
+  /// Dati fiscali da salvare subito dopo la creazione del tenant.
+  /// Null se non è stata compilata nemmeno la ragione sociale: il profilo si
+  /// può sempre compilare dopo, dalla scheda del tenant.
+  Map<String, dynamic>? _buildBillingProfile() {
+    if (_businessName.text.trim().isEmpty) return null;
+    return {
+      'business_name': _businessName.text.trim(),
+      'vat_number': _vatNumber.text.trim(),
+      'fiscal_code': _fiscalCode.text.trim(),
+      'sdi_code': _sdiCode.text.trim(),
+      'pec': _pec.text.trim(),
+      'billing_email': _billingEmail.text.trim(),
+      'address': _billingAddress.text.trim(),
+      'zip_code': _billingZip.text.trim(),
+      'city': _billingCity.text.trim(),
+      'province': _billingProvince.text.trim().toUpperCase(),
+    };
   }
 
   String _getPrice(QuotaTypeProvider provider) {
@@ -113,6 +171,65 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
         {'price_list_item_id': _contractItem!.id, 'quantity': 1},
       ],
     };
+  }
+
+  /// Dati fiscali del cliente: sono quelli che finiscono in fattura, e da qui
+  /// deriva anche la sede legale mostrata nella scheda del tenant.
+  Widget _buildBillingSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 32),
+        const Divider(),
+        const SizedBox(height: 24),
+        const Text('Dati di fatturazione', style: AppTextStyles.body),
+        const SizedBox(height: 4),
+        Text(
+          _createContract
+              ? 'Necessari per emettere la fattura del contratto'
+              : 'Facoltativi ora: servono quando si sottoscrive un contratto',
+          style: AppTextStyles.caption,
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 16,
+          runSpacing: 16,
+          children: [
+            _billingField(_businessName, 'Ragione sociale', width: 360),
+            _billingField(_vatNumber, 'Partita IVA'),
+            _billingField(_fiscalCode, 'Codice fiscale'),
+            _billingField(_sdiCode, 'Codice destinatario SDI'),
+            _billingField(_pec, 'PEC'),
+            _billingField(_billingEmail, 'Email amministrativa',
+                helper: 'Se vuota si usano admin, titolare e segreteria',
+                width: 360),
+            _billingField(_billingAddress, 'Indirizzo', width: 360),
+            _billingField(_billingZip, 'CAP', width: 120),
+            _billingField(_billingCity, 'Città'),
+            _billingField(_billingProvince, 'Provincia', width: 120),
+          ],
+        ),
+        if (_billingError != null) ...[
+          const SizedBox(height: 12),
+          Text(_billingError!, style: const TextStyle(color: AppColors.error)),
+        ],
+      ],
+    );
+  }
+
+  Widget _billingField(TextEditingController controller, String label,
+      {String? helper, double width = 240}) {
+    return SizedBox(
+      width: width,
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          helperText: helper,
+          border: const OutlineInputBorder(),
+        ),
+      ),
+    );
   }
 
   Widget _buildContractSection() {
@@ -444,6 +561,10 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
           const SizedBox(height: 32),
 
           _buildContractSection(),
+
+          _buildBillingSection(),
+
+          const SizedBox(height: 32),
 
           // Price Preview
           Container(
