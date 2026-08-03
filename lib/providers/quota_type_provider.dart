@@ -59,6 +59,46 @@ class QuotaTypeProvider with ChangeNotifier {
     }
   }
 
+  /// Crea o aggiorna un piano.
+  ///
+  /// I limiti che si impostano qui (postazioni, operatori, SMS) sono quelli
+  /// che il tenant si ritrova quando il piano gli viene applicato: il prezzo
+  /// vero, invece, sta sulla voce di listino, non qui.
+  Future<bool> saveQuotaType(Map<String, dynamic> data, {int? id}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final base = '${EnvironmentConfig.adminApiPath}/quota-types/';
+      if (id == null) {
+        await _apiService.dio.post(base, data: data);
+      } else {
+        await _apiService.dio.put('$base$id/', data: data);
+      }
+      await loadQuotaTypes();
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteQuotaType(int id) async {
+    try {
+      await _apiService.dio
+          .delete('${EnvironmentConfig.adminApiPath}/quota-types/$id/');
+      await loadQuotaTypes();
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Get quota type by code
   QuotaType? getByCode(String code) {
     return _quotaTypes?.firstWhere(

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../../utils/error_handler.dart';
 import '../layout/main_layout.dart';
 
@@ -168,7 +169,7 @@ class _VatScreenState extends State<VatScreen> {
     }
 
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Periodo')),
           DataColumn(label: Text('Debito'), numeric: true),
@@ -254,7 +255,7 @@ class _VatScreenState extends State<VatScreen> {
     }
 
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Tipo')),
           DataColumn(label: Text('Anno')),

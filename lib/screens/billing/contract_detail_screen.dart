@@ -10,7 +10,10 @@ import '../../providers/billing_provider.dart';
 import '../../providers/navigation_provider.dart';
 import '../../utils/error_handler.dart';
 import '../../utils/file_utils.dart';
+import '../../widgets/wide_data_table.dart';
 import 'add_contract_lines_dialog.dart';
+import 'change_plan_dialog.dart';
+import 'widgets/mark_paid_dialog.dart';
 import '../layout/main_layout.dart';
 
 /// Dettaglio di un contratto: righe pinnate, scadenzario, provvigioni e
@@ -187,6 +190,124 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     }
   }
 
+  /// Upgrade, downgrade o rimozione di moduli: una sola operazione.
+  Future<void> _changePlan(Contract contract) async {
+    final payload = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => ChangePlanDialog(contract: contract),
+    );
+    if (payload == null || !mounted) return;
+
+    final provider = context.read<BillingProvider>();
+    final created = await provider.changePlan(contract.id, payload);
+    if (!mounted) return;
+    if (created != null) {
+      ApiErrorHandler.showSuccessSnackbar(
+        context,
+        'Nuovo contratto #${created.id} attivo',
+      );
+      context.read<NavigationProvider>().navigateToContractDetail(created.id);
+    } else {
+      ApiErrorHandler.showErrorMessage(
+        context,
+        provider.error ?? 'Cambio piano non riuscito',
+      );
+    }
+  }
+
+  Future<void> _markPaid(Installment installment) async {
+    final result = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) => MarkPaidDialog(installment: installment),
+    );
+    if (result == null || !mounted) return;
+
+    final provider = context.read<BillingProvider>();
+    final ok = await provider.markInstallmentPaid(installment.id, result);
+    if (!mounted) return;
+    if (ok) {
+      ApiErrorHandler.showSuccessSnackbar(context, 'Incasso registrato');
+      await provider.loadContractDetail(widget.contractId);
+    } else {
+      ApiErrorHandler.showErrorMessage(
+        context,
+        provider.error ?? 'Registrazione non riuscita',
+      );
+    }
+  }
+
+  Future<void> _issueInvoice(Installment installment) async {
+    final provider = context.read<BillingProvider>();
+    final ok = await provider.issueInvoiceForInstallment(installment.id);
+    if (!mounted) return;
+    if (ok) {
+      ApiErrorHandler.showSuccessSnackbar(context, 'Fattura emessa');
+      await provider.loadContractDetail(widget.contractId);
+    } else {
+      ApiErrorHandler.showErrorMessage(
+        context,
+        provider.error ?? 'Emissione non riuscita',
+      );
+    }
+  }
+
+  Future<void> _cancelInstallment(Installment installment) async {
+    final controller = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Annulla rata'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'La rata non sarà più esigibile. Se era già fatturata, la '
+              'fattura viene annullata e la transazione del cliente stornata.',
+              style: TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                labelText: 'Motivo',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Indietro'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Annulla rata'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final provider = context.read<BillingProvider>();
+    final ok = await provider.cancelInstallment(
+      installment.id,
+      controller.text,
+    );
+    if (!mounted) return;
+    if (ok) {
+      ApiErrorHandler.showSuccessSnackbar(context, 'Rata annullata');
+      await provider.loadContractDetail(widget.contractId);
+    } else {
+      ApiErrorHandler.showErrorMessage(
+        context,
+        provider.error ?? 'Annullamento non riuscito',
+      );
+    }
+  }
+
   Future<void> _addLines(Contract contract) async {
     final payload = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -330,6 +451,12 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                   const SizedBox(width: 8),
                 ],
                 if (contract != null && contract.isActive) ...[
+                  FilledButton.tonalIcon(
+                    onPressed: () => _changePlan(contract),
+                    icon: const Icon(Icons.swap_horiz, size: 18),
+                    label: const Text('Cambia piano'),
+                  ),
+                  const SizedBox(width: 8),
                   OutlinedButton(
                     onPressed: () => _addLines(contract),
                     child: const Text('Aggiungi voci'),
@@ -381,6 +508,13 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           const SizedBox(height: 16),
           _section('Voci del contratto', _linesTable(contract)),
           const SizedBox(height: 16),
+          if (contract.childContracts.isNotEmpty) ...[
+            _section(
+              'Moduli aggiunti dopo la firma',
+              _childContracts(contract),
+            ),
+            const SizedBox(height: 16),
+          ],
           _section('Scadenzario', _installmentsTable(contract)),
           const SizedBox(height: 16),
           if (provider.commissions.isNotEmpty)
@@ -456,7 +590,7 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
 
   Widget _linesTable(Contract contract) {
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Voce')),
           DataColumn(label: Text('Q.tà'), numeric: true),
@@ -489,7 +623,7 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
 
   Widget _installmentsTable(Contract contract) {
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Anno')),
           DataColumn(label: Text('Rata')),
@@ -498,6 +632,7 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
           DataColumn(label: Text('Totale'), numeric: true),
           DataColumn(label: Text('Stato')),
           DataColumn(label: Text('Fattura')),
+          DataColumn(label: Text('')),
         ],
         rows: contract.installments
             .map(
@@ -522,6 +657,7 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
                   DataCell(Text(_currency.format(installment.totalAmount))),
                   DataCell(Text(installment.statusDisplay)),
                   DataCell(Text(installment.invoiceNumber ?? '—')),
+                  DataCell(_installmentActions(installment)),
                 ],
               ),
             )
@@ -530,9 +666,70 @@ class _ContractDetailScreenState extends State<ContractDetailScreen> {
     );
   }
 
+  /// Le stesse azioni dello scadenzario, qui dove si guarda il contratto:
+  /// per incassare una rata non deve servire cambiare schermata.
+  Widget _installmentActions(Installment installment) {
+    if (!installment.isOpen) return const SizedBox.shrink();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (installment.invoiceId == null)
+          IconButton(
+            icon: const Icon(Icons.receipt_long, size: 20),
+            tooltip: 'Emetti fattura ora',
+            onPressed: () => _issueInvoice(installment),
+          ),
+        FilledButton.tonal(
+          onPressed: () => _markPaid(installment),
+          child: const Text('Incassa'),
+        ),
+        IconButton(
+          icon: const Icon(Icons.block, size: 20),
+          tooltip: 'Annulla rata',
+          onPressed: () => _cancelInstallment(installment),
+        ),
+      ],
+    );
+  }
+
+  /// Add-on sottoscritti dopo la firma: sono contratti separati, e senza
+  /// vederli da qui non si saprebbe nemmeno che esistono.
+  Widget _childContracts(Contract contract) {
+    return Card(
+      child: Column(
+        children: contract.childContracts.map((child) {
+          return ListTile(
+            leading: const Icon(Icons.extension),
+            title: Text(child.lines.map((line) => line.description).join(', ')),
+            subtitle: Text(
+              '${_currency.format(child.annualTotal)}/anno · '
+              '${child.statusDisplay}'
+              '${child.startDate == null ? '' : ' · dal ${_dateFormat.format(child.startDate!)}'}',
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (child.isActive)
+                  TextButton(
+                    onPressed: () => _terminate(child),
+                    style: TextButton.styleFrom(foregroundColor: Colors.red),
+                    child: const Text('Rimuovi'),
+                  ),
+                const Icon(Icons.chevron_right),
+              ],
+            ),
+            onTap: () => context
+                .read<NavigationProvider>()
+                .navigateToContractDetail(child.id),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _commissionsTable(BillingProvider provider) {
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Commerciale')),
           DataColumn(label: Text('Tipo')),

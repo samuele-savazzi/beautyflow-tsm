@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../../utils/error_handler.dart';
 import 'widgets/expense_form_dialog.dart';
 import '../layout/main_layout.dart';
@@ -169,7 +170,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   Widget _table(FinanceProvider provider) {
     return Card(
       child: SingleChildScrollView(
-        child: DataTable(
+        child: WideDataTable(
           columns: const [
             DataColumn(label: Text('Data')),
             DataColumn(label: Text('Descrizione')),

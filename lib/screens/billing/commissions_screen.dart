@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../../utils/error_handler.dart';
 import '../layout/main_layout.dart';
 
@@ -161,7 +162,7 @@ class _CommissionsScreenState extends State<CommissionsScreen>
 
     return SingleChildScrollView(
       child: Card(
-        child: DataTable(
+        child: WideDataTable(
           columns: const [
             DataColumn(label: Text('Commerciale')),
             DataColumn(label: Text('Maturate'), numeric: true),
@@ -207,7 +208,7 @@ class _CommissionsScreenState extends State<CommissionsScreen>
 
     return SingleChildScrollView(
       child: Card(
-        child: DataTable(
+        child: WideDataTable(
           columns: const [
             DataColumn(label: Text('Data')),
             DataColumn(label: Text('Commerciale')),

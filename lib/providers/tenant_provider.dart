@@ -374,6 +374,45 @@ class TenantProvider with ChangeNotifier {
     }
   }
 
+  /// Forza a mano la scadenza dell'abbonamento del tenant.
+  ///
+  /// In produzione `paid_until` la scrivono solo la creazione del tenant e
+  /// l'incasso delle rate: questo e' l'unico modo di provare il blocco 402
+  /// (una data passata lo fa scattare subito sui ruoli operativi).
+  /// Ritorna la risposta del backend (`is_expired`, `paid_until`, ...).
+  Future<Map<String, dynamic>?> updatePaidUntil(
+    int tenantId,
+    DateTime paidUntil, {
+    String? reason,
+    bool syncPlanExpiresAt = true,
+  }) async {
+    try {
+      final response = await _apiService.dio.put(
+        '${EnvironmentConfig.adminApiPath}/tenants/$tenantId/paid-until/',
+        data: {
+          'paid_until': _formatIsoDate(paidUntil),
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+          'sync_plan_expires_at': syncPlanExpiresAt,
+        },
+      );
+
+      if (_selectedTenant?.id == tenantId) {
+        await loadTenantDetail(tenantId);
+      }
+
+      return Map<String, dynamic>.from(response.data as Map);
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  String _formatIsoDate(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+
   /// Upload tenant logo/favicon/dark_logo
   Future<String?> uploadLogo(
     int tenantId,

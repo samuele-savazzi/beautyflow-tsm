@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
@@ -19,23 +20,26 @@ import 'screens/auth/auth_wrapper.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Desktop window configuration
-  await windowManager.ensureInitialized();
+  // Configurazione finestra: esiste solo su desktop. Su web il plugin non c'e'
+  // e la chiamata lascerebbe la pagina bianca, quindi si salta.
+  if (!kIsWeb) {
+    await windowManager.ensureInitialized();
 
-  const windowOptions = WindowOptions(
-    size: Size(1280, 800),
-    minimumSize: Size(1024, 768),
-    center: true,
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.normal,
-    title: 'BeautyFlow TSM',
-  );
+    const windowOptions = WindowOptions(
+      size: Size(1280, 800),
+      minimumSize: Size(1024, 768),
+      center: true,
+      backgroundColor: Colors.transparent,
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+      title: 'BeautyFlow TSM',
+    );
 
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
 
   runApp(const MyApp());
 }

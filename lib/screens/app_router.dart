@@ -17,6 +17,7 @@ import 'admin_finance/cash_screen.dart';
 import 'admin_finance/vat_screen.dart';
 import 'admin_finance/reports_screen.dart';
 import 'admin_finance/fiscal_settings_screen.dart';
+import 'catalog/plans_tiers_screen.dart';
 
 class AppRouter extends StatelessWidget {
   const AppRouter({super.key});
@@ -39,11 +40,7 @@ class AppRouter extends StatelessWidget {
         return const TenantListScreen();
 
       case AppSection.tiers:
-        return const Scaffold(
-          body: Center(
-            child: Text('Tiers Screen - In sviluppo'),
-          ),
-        );
+        return const PlansTiersScreen();
 
       case AppSection.admins:
         return const Scaffold(

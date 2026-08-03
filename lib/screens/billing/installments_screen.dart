@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
 import '../../utils/error_handler.dart';
+import '../../widgets/wide_data_table.dart';
 import 'widgets/mark_paid_dialog.dart';
 import '../layout/main_layout.dart';
 
@@ -209,7 +210,7 @@ class _InstallmentsScreenState extends State<InstallmentsScreen> {
   Widget _table(BillingProvider provider) {
     return Card(
       child: SingleChildScrollView(
-        child: DataTable(
+        child: WideDataTable(
           columns: const [
             DataColumn(label: Text('Cliente')),
             DataColumn(label: Text('Rata')),

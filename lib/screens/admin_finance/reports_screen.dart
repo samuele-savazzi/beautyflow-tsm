@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../../utils/error_handler.dart';
 import '../../utils/file_utils.dart';
 import '../layout/main_layout.dart';
@@ -283,7 +284,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
 
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Categoria')),
           DataColumn(label: Text('Tipo')),

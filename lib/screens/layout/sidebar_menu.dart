@@ -190,6 +190,14 @@ class SidebarMenu extends StatelessWidget {
                   ),
 
                   _MenuItem(
+                    icon: Icons.category,
+                    label: 'Piani e moduli',
+                    section: AppSection.tiers,
+                    isSelected: navProvider.currentSection == AppSection.tiers,
+                    onTap: () => navProvider.navigateTo(AppSection.tiers),
+                  ),
+
+                  _MenuItem(
                     icon: Icons.sell,
                     label: 'Listini',
                     section: AppSection.priceLists,

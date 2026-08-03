@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../../utils/error_handler.dart';
 import 'widgets/salesperson_form_dialog.dart';
 import '../layout/main_layout.dart';
@@ -87,7 +88,7 @@ class _SalespeopleScreenState extends State<SalespeopleScreen> {
               Expanded(
                 child: Card(
                   child: SingleChildScrollView(
-                    child: DataTable(
+                    child: WideDataTable(
                       columns: const [
                         DataColumn(label: Text('Codice')),
                         DataColumn(label: Text('Nome')),

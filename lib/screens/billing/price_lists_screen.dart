@@ -6,6 +6,8 @@ import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
 import '../../utils/error_handler.dart';
 import '../layout/main_layout.dart';
+import '../../widgets/wide_data_table.dart';
+import 'widgets/price_list_item_dialog.dart';
 
 /// Listini versionati.
 ///
@@ -121,6 +123,76 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
       ApiErrorHandler.showErrorMessage(
         context,
         provider.error ?? 'Attivazione non riuscita',
+      );
+    }
+  }
+
+  /// Aggiunge o modifica una voce.
+  ///
+  /// Solo sulle bozze: un listino attivo è la storia dei contratti già firmati
+  /// e non si riscrive, se ne fa una versione nuova.
+  Future<void> _editItem(PriceList priceList, {PriceListItem? item}) async {
+    final data = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (_) =>
+          PriceListItemDialog(item: item, priceListCode: priceList.code),
+    );
+    if (data == null || !mounted) return;
+
+    final provider = context.read<BillingProvider>();
+    final ok = await provider.savePriceListItem(
+      priceList.id,
+      data,
+      itemId: item?.id,
+    );
+    if (!mounted) return;
+    if (ok) {
+      ApiErrorHandler.showSuccessSnackbar(
+        context,
+        item == null ? 'Voce aggiunta' : 'Voce aggiornata',
+      );
+    } else {
+      ApiErrorHandler.showErrorMessage(
+        context,
+        provider.error ?? 'Salvataggio non riuscito',
+      );
+    }
+  }
+
+  Future<void> _deleteItem(PriceList priceList, PriceListItem item) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Elimina voce'),
+        content: Text(
+          '${item.label} · ${item.commitmentLabel} · ${item.installmentLabel}\n\n'
+          'I contratti già firmati con questa voce non cambiano: hanno il '
+          'prezzo copiato addosso.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Annulla'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Elimina'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final provider = context.read<BillingProvider>();
+    final ok = await provider.deletePriceListItem(priceList.id, item.id);
+    if (!mounted) return;
+    if (ok) {
+      ApiErrorHandler.showSuccessSnackbar(context, 'Voce eliminata');
+    } else {
+      ApiErrorHandler.showErrorMessage(
+        context,
+        provider.error ?? 'Eliminazione non riuscita',
       );
     }
   }
@@ -243,16 +315,25 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                     ),
                   ),
                 ),
+              const Spacer(),
+              if (detail.isEditable)
+                FilledButton.icon(
+                  onPressed: () => _editItem(detail),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Nuova voce'),
+                ),
             ],
           ),
           const SizedBox(height: 16),
-          ...grouped.entries.map((entry) => _itemGroup(entry.key, entry.value)),
+          ...grouped.entries.map(
+            (entry) => _itemGroup(entry.key, entry.value, detail),
+          ),
         ],
       ),
     );
   }
 
-  Widget _itemGroup(String label, List<PriceListItem> items) {
+  Widget _itemGroup(String label, List<PriceListItem> items, PriceList detail) {
     items.sort((a, b) {
       final byCommitment = a.commitmentMonths.compareTo(b.commitmentMonths);
       return byCommitment != 0
@@ -269,8 +350,7 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
           children: [
             Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            DataTable(
-              columnSpacing: 24,
+            WideDataTable(
               columns: const [
                 DataColumn(label: Text('Impegno')),
                 DataColumn(label: Text('Rate')),
@@ -278,6 +358,7 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                 DataColumn(label: Text('Per rata'), numeric: true),
                 DataColumn(label: Text('Una tantum'), numeric: true),
                 DataColumn(label: Text('Provvigione A1/A2/A3')),
+                DataColumn(label: Text('')),
               ],
               rows: items
                   .map(
@@ -304,6 +385,30 @@ class _PriceListsScreenState extends State<PriceListsScreen> {
                                       '${item.commissionRateY2.toStringAsFixed(0)}% / '
                                       '${item.commissionRateY3plus.toStringAsFixed(0)}%',
                           ),
+                        ),
+                        DataCell(
+                          detail.isEditable
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, size: 18),
+                                      tooltip: 'Modifica',
+                                      onPressed: () =>
+                                          _editItem(detail, item: item),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete_outline,
+                                        size: 18,
+                                      ),
+                                      tooltip: 'Elimina',
+                                      onPressed: () =>
+                                          _deleteItem(detail, item),
+                                    ),
+                                  ],
+                                )
+                              : const SizedBox.shrink(),
                         ),
                       ],
                     ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../../utils/error_handler.dart';
 import '../layout/main_layout.dart';
 
@@ -248,7 +249,7 @@ class _CashScreenState extends State<CashScreen> {
 
     return Card(
       child: SingleChildScrollView(
-        child: DataTable(
+        child: WideDataTable(
           columns: const [
             DataColumn(label: Text('Data')),
             DataColumn(label: Text('Conto')),

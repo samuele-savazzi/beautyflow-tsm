@@ -202,6 +202,44 @@ class TierProvider with ChangeNotifier {
     }
   }
 
+  /// Aggiorna un tier esistente (admin only)
+  Future<bool> updateTier(int tierId, Map<String, dynamic> tierData) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _apiService.dio.put(
+        '${EnvironmentConfig.adminApiPath}/tiers/$tierId/',
+        data: tierData,
+      );
+      await loadTiers();
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Disattiva un tier a catalogo (soft delete lato backend)
+  Future<bool> deleteTier(int tierId) async {
+    try {
+      await _apiService.dio
+          .delete('${EnvironmentConfig.adminApiPath}/tiers/$tierId/');
+      await loadTiers();
+      return true;
+    } on DioException catch (e) {
+      _error = _getErrorMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Load next page
   Future<void> loadNextPage() async {
     if (!hasNextPage || _isLoading) return;

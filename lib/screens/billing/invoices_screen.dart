@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/billing_models.dart';
 import '../../providers/billing_provider.dart';
 import '../../utils/error_handler.dart';
+import '../../widgets/wide_data_table.dart';
 import '../layout/main_layout.dart';
 
 /// Fatture emesse. Il PDF è lo stesso che il cliente trova allegato alla
@@ -193,7 +194,7 @@ class _InvoicesScreenState extends State<InvoicesScreen> {
               Expanded(
                 child: Card(
                   child: SingleChildScrollView(
-                    child: DataTable(
+                    child: WideDataTable(
                       columns: const [
                         DataColumn(label: Text('Numero')),
                         DataColumn(label: Text('Data')),

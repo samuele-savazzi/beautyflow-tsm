@@ -527,9 +527,14 @@ class Contract {
   final double setupTotal;
   final double monthlyValue;
   final String notes;
+  final int? previousContractId;
   final List<ContractLine> lines;
   final List<Installment> installments;
   final List<ContractDocument> documents;
+
+  /// Add-on sottoscritti in corso d'opera: sono contratti a sé, e per togliere
+  /// un modulo aggiunto dopo si cessa il figlio, non il contratto principale.
+  final List<Contract> childContracts;
 
   Contract({
     required this.id,
@@ -554,9 +559,11 @@ class Contract {
     required this.setupTotal,
     required this.monthlyValue,
     required this.notes,
+    this.previousContractId,
     required this.lines,
     required this.installments,
     required this.documents,
+    this.childContracts = const [],
   });
 
   factory Contract.fromJson(Map<String, dynamic> json) => Contract(
@@ -594,6 +601,11 @@ class Contract {
                 ?.map((e) => ContractDocument.fromJson(e))
                 .toList() ??
             [],
+        previousContractId: json['previous_contract'],
+        childContracts: (json['child_contracts'] as List?)
+                ?.map((e) => Contract.fromJson(e))
+                .toList() ??
+            const [],
       );
 
   String get commitmentLabel {

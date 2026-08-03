@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/finance_models.dart';
 import '../../providers/finance_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../layout/main_layout.dart';
 
 /// Cruscotto economico: quanto è entrato, quanto deve ancora entrare, e
@@ -258,7 +259,7 @@ class _FinanceDashboardScreenState extends State<FinanceDashboardScreen> {
     if (rows.isEmpty) return const Text('Nessuna scadenza nei prossimi mesi');
 
     return Card(
-      child: DataTable(
+      child: WideDataTable(
         columns: const [
           DataColumn(label: Text('Orizzonte')),
           DataColumn(label: Text('Incassi attesi'), numeric: true),

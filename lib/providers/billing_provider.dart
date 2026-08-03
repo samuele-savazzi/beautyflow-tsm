@@ -355,6 +355,41 @@ class BillingProvider with ChangeNotifier {
         data: {'price_list_id': priceListId}, reloadId: id);
   }
 
+  /// Canone già pagato e non ancora goduto: è lo sconto che il cambio piano
+  /// riporta sulla prima rata del nuovo contratto.
+  Future<double?> residualCredit(int id, DateTime startDate) async {
+    try {
+      final response = await _apiService.dio.get(
+        '$_base/contracts/$id/change-plan/',
+        queryParameters: {'start_date': _apiDate(startDate)},
+      );
+      return (response.data['residual_credit'] as num?)?.toDouble() ?? 0;
+    } catch (error) {
+      _fail(error);
+      return null;
+    }
+  }
+
+  /// Upgrade, downgrade o rimozione di moduli: cessa il contratto in corso e
+  /// ne firma uno nuovo scontando il credito residuo.
+  Future<Contract?> changePlan(int id, Map<String, dynamic> data) async {
+    _start();
+    try {
+      final response =
+          await _apiService.dio.post('$_base/contracts/$id/change-plan/', data: data);
+      _stop();
+      return Contract.fromJson(response.data['contract']);
+    } catch (error) {
+      _fail(error);
+      return null;
+    }
+  }
+
+  static String _apiDate(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-'
+      '${date.month.toString().padLeft(2, '0')}-'
+      '${date.day.toString().padLeft(2, '0')}';
+
   Future<bool> _contractAction(String path,
       {Map<String, dynamic>? data, int? reloadId}) async {
     _start();

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../providers/billing_provider.dart';
 import '../../providers/navigation_provider.dart';
+import '../../widgets/wide_data_table.dart';
 import '../layout/main_layout.dart';
 
 /// Elenco dei contratti attivi, con impegno, valore e commerciale.
@@ -77,8 +78,7 @@ class _ContractsScreenState extends State<ContractsScreen> {
               Expanded(
                 child: Card(
                   child: SingleChildScrollView(
-                    child: DataTable(
-                      showCheckboxColumn: false,
+                    child: WideDataTable(
                       columns: const [
                         DataColumn(label: Text('Cliente')),
                         DataColumn(label: Text('Piano')),

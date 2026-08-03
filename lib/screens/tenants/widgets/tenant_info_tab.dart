@@ -13,6 +13,7 @@ import 'edit_area_limit_dialog.dart';
 import 'edit_area_workstation_limit_dialog.dart';
 import 'edit_area_location_dialog.dart';
 import 'edit_operator_limit_dialog.dart';
+import 'edit_paid_until_dialog.dart';
 
 class TenantInfoTab extends StatelessWidget {
   final Tenant tenant;
@@ -367,54 +368,56 @@ class TenantInfoTab extends StatelessWidget {
                   ),
                 ),
               ],
-              if (tenant.paidUntil != null)
-                _buildInfoRow(
-                  'Pagato Fino Al',
-                  _formatDate(tenant.paidUntil!),
-                  valueWidget: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.event,
-                        size: 16,
-                        color: _isExpiringSoon(tenant.paidUntil!)
-                            ? AppColors.warning
-                            : AppColors.textSecondary,
+              _buildInfoRow(
+                'Pagato Fino Al',
+                tenant.paidUntil != null ? _formatDate(tenant.paidUntil!) : '—',
+                valueWidget: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.event,
+                      size: 16,
+                      color: _paidUntilColor(tenant.paidUntil),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      tenant.paidUntil != null
+                          ? _formatDate(tenant.paidUntil!)
+                          : 'Nessuna scadenza',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: _paidUntilColor(tenant.paidUntil),
+                        fontWeight: tenant.paidUntil != null &&
+                                (_isExpired(tenant.paidUntil!) ||
+                                    _isExpiringSoon(tenant.paidUntil!))
+                            ? FontWeight.w600
+                            : FontWeight.normal,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _formatDate(tenant.paidUntil!),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: _isExpiringSoon(tenant.paidUntil!)
-                              ? AppColors.warning
-                              : AppColors.textPrimary,
-                          fontWeight: _isExpiringSoon(tenant.paidUntil!)
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                        ),
-                      ),
-                      if (_isExpiringSoon(tenant.paidUntil!)) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppColors.warning.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'In scadenza',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.warning,
-                            ),
-                          ),
-                        ),
-                      ],
+                    ),
+                    if (tenant.paidUntil != null &&
+                        _isExpired(tenant.paidUntil!)) ...[
+                      const SizedBox(width: 8),
+                      _badge('Scaduto', AppColors.error),
+                    ] else if (tenant.paidUntil != null &&
+                        _isExpiringSoon(tenant.paidUntil!)) ...[
+                      const SizedBox(width: 8),
+                      _badge('In scadenza', AppColors.warning),
                     ],
-                  ),
+                    const SizedBox(width: 8),
+                    // Forzatura manuale: senza questa il tester non ha modo di
+                    // provare il blocco 402, che in esercizio dipende solo
+                    // dagli incassi delle rate.
+                    IconButton(
+                      icon: const Icon(Icons.edit_calendar, size: 18),
+                      iconSize: 18,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      tooltip: 'Modifica scadenza abbonamento',
+                      onPressed: () => _showPaidUntilDialog(context),
+                    ),
+                  ],
                 ),
+              ),
               _buildInfoRow(
                 'Tiers Attivi',
                 '${tenant.activeTiersCount}',
@@ -887,6 +890,52 @@ class TenantInfoTab extends StatelessWidget {
 
   String _formatDateTime(DateTime dateTime) {
     return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+  }
+
+  Widget _badge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Color _paidUntilColor(String? dateString) {
+    if (dateString == null) return AppColors.textSecondary;
+    if (_isExpired(dateString)) return AppColors.error;
+    if (_isExpiringSoon(dateString)) return AppColors.warning;
+    return AppColors.textPrimary;
+  }
+
+  Future<void> _showPaidUntilDialog(BuildContext context) async {
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (_) => EditPaidUntilDialog(tenant: tenant),
+    );
+
+    if (updated == true && context.mounted) {
+      await context.read<TenantProvider>().loadTenantDetail(tenant.id);
+    }
+  }
+
+  bool _isExpired(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      final now = DateTime.now();
+      return date.isBefore(DateTime(now.year, now.month, now.day));
+    } catch (e) {
+      return false;
+    }
   }
 
   bool _isExpiringSoon(String dateString) {
