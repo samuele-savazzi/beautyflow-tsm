@@ -20,12 +20,7 @@ class StepIndicator extends StatelessWidget {
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: AppColors.border,
-            width: 1,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
       ),
       child: Row(
         children: List.generate(totalSteps, (index) {
@@ -49,14 +44,14 @@ class StepIndicator extends StatelessWidget {
                           color: isCompleted
                               ? AppColors.success
                               : isActive
-                                  ? AppColors.primary
-                                  : AppColors.background,
+                              ? AppColors.primary
+                              : AppColors.background,
                           border: Border.all(
                             color: isCompleted
                                 ? AppColors.success
                                 : isActive
-                                    ? AppColors.primary
-                                    : AppColors.border,
+                                ? AppColors.primary
+                                : AppColors.border,
                             width: 2,
                           ),
                         ),
@@ -85,8 +80,9 @@ class StepIndicator extends StatelessWidget {
                         stepTitles[index],
                         style: TextStyle(
                           fontSize: 12,
-                          fontWeight:
-                              isActive ? FontWeight.w600 : FontWeight.normal,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                           color: isActive
                               ? AppColors.primary
                               : AppColors.textSecondary,
@@ -105,9 +101,7 @@ class StepIndicator extends StatelessWidget {
                     width: 40,
                     margin: const EdgeInsets.only(bottom: 32),
                     decoration: BoxDecoration(
-                      color: isCompleted
-                          ? AppColors.success
-                          : AppColors.border,
+                      color: isCompleted ? AppColors.success : AppColors.border,
                     ),
                   ),
               ],

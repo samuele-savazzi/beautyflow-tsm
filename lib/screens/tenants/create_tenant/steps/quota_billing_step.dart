@@ -16,7 +16,8 @@ class QuotaBillingStep extends StatefulWidget {
     required int billingDuration,
     Map<String, dynamic>? contractConfig,
     Map<String, dynamic>? billingProfile,
-  }) onNext;
+  })
+  onNext;
 
   const QuotaBillingStep({
     super.key,
@@ -81,8 +82,16 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
   @override
   void dispose() {
     for (final controller in [
-      _businessName, _vatNumber, _fiscalCode, _sdiCode, _pec, _billingEmail,
-      _billingAddress, _billingZip, _billingCity, _billingProvince,
+      _businessName,
+      _vatNumber,
+      _fiscalCode,
+      _sdiCode,
+      _pec,
+      _billingEmail,
+      _billingAddress,
+      _billingZip,
+      _billingCity,
+      _billingProvince,
     ]) {
       controller.dispose();
     }
@@ -95,9 +104,11 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     // Con un contratto attivo ma senza ragione sociale le rate nascono e la
     // fattura non parte mai: meglio fermarsi qui che scoprirlo dai log.
     if (contractConfig != null && _businessName.text.trim().isEmpty) {
-      setState(() => _billingError =
-          'Con un contratto attivo servono i dati fiscali: senza ragione '
-          'sociale la fattura non può essere emessa');
+      setState(
+        () => _billingError =
+            'Con un contratto attivo servono i dati fiscali: senza ragione '
+            'sociale la fattura non può essere emessa',
+      );
       return;
     }
     setState(() => _billingError = null);
@@ -142,7 +153,6 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
       return '€${quotaType.yearlyPrice ?? '0.00'}/anno';
     }
   }
-
 
   /// Configurazione del contratto da creare subito dopo il tenant.
   /// Null se il contratto non è stato richiesto o non è stata scelta una voce
@@ -200,9 +210,12 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
             _billingField(_fiscalCode, 'Codice fiscale'),
             _billingField(_sdiCode, 'Codice destinatario SDI'),
             _billingField(_pec, 'PEC'),
-            _billingField(_billingEmail, 'Email amministrativa',
-                helper: 'Se vuota si usano admin, titolare e segreteria',
-                width: 360),
+            _billingField(
+              _billingEmail,
+              'Email amministrativa',
+              helper: 'Se vuota si usano admin, titolare e segreteria',
+              width: 360,
+            ),
             _billingField(_billingAddress, 'Indirizzo', width: 360),
             _billingField(_billingZip, 'CAP', width: 120),
             _billingField(_billingCity, 'Città'),
@@ -217,8 +230,12 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     );
   }
 
-  Widget _billingField(TextEditingController controller, String label,
-      {String? helper, double width = 240}) {
+  Widget _billingField(
+    TextEditingController controller,
+    String label, {
+    String? helper,
+    double width = 240,
+  }) {
     return SizedBox(
       width: width,
       child: TextFormField(
@@ -236,7 +253,8 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
     final billing = context.watch<BillingProvider>();
     final priceList = billing.priceListDetail;
     final planItems =
-        priceList?.items.where((item) => item.itemKind == 'plan').toList() ?? [];
+        priceList?.items.where((item) => item.itemKind == 'plan').toList() ??
+        [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,15 +293,17 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                 border: OutlineInputBorder(),
               ),
               items: planItems
-                  .map((item) => DropdownMenuItem(
-                        value: item,
-                        child: Text(
-                          '${item.label} · ${item.commitmentLabel} · '
-                          '${item.installmentLabel} · '
-                          '€${item.annualTotal.toStringAsFixed(2)}/anno',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ))
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item,
+                      child: Text(
+                        '${item.label} · ${item.commitmentLabel} · '
+                        '${item.installmentLabel} · '
+                        '€${item.annualTotal.toStringAsFixed(2)}/anno',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) => setState(() {
                 _contractItem = value;
@@ -308,8 +328,12 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                   value: null,
                   child: Text('Nessuno (vendita diretta)'),
                 ),
-                ...billing.salespeople.map((person) => DropdownMenuItem(
-                    value: person.id, child: Text(person.fullName))),
+                ...billing.salespeople.map(
+                  (person) => DropdownMenuItem(
+                    value: person.id,
+                    child: Text(person.fullName),
+                  ),
+                ),
               ],
               onChanged: (value) => setState(() => _salespersonId = value),
             ),
@@ -374,10 +398,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
 
     if (quotaTypes.isEmpty) {
       return const Center(
-        child: Text(
-          'Nessun piano disponibile',
-          style: AppTextStyles.body,
-        ),
+        child: Text('Nessun piano disponibile', style: AppTextStyles.body),
       );
     }
 
@@ -386,10 +407,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Piano e Fatturazione',
-            style: AppTextStyles.h3,
-          ),
+          const Text('Piano e Fatturazione', style: AppTextStyles.h3),
           const SizedBox(height: 8),
           const Text(
             'Seleziona il piano commerciale e il tipo di fatturazione',
@@ -398,10 +416,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
           const SizedBox(height: 32),
 
           // Quota Type Selection
-          const Text(
-            'Piano Commerciale',
-            style: AppTextStyles.body,
-          ),
+          const Text('Piano Commerciale', style: AppTextStyles.body),
           const SizedBox(height: 16),
 
           ...quotaTypes.map((quotaType) {
@@ -437,7 +452,9 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : AppColors.border,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.border,
                             width: 2,
                           ),
                         ),
@@ -504,12 +521,14 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                                     Icons.people,
                                     '${quotaType.includedOperatorsPerArea} operatori/area',
                                   ),
-                                if (quotaType.includedWorkstationsPerArea != null)
+                                if (quotaType.includedWorkstationsPerArea !=
+                                    null)
                                   _buildFeature(
                                     Icons.chair_outlined,
                                     '${quotaType.includedWorkstationsPerArea} postazioni/sede',
                                   ),
-                                if (quotaType.includedWorkstationsPerOperator != null)
+                                if (quotaType.includedWorkstationsPerOperator !=
+                                    null)
                                   _buildFeature(
                                     Icons.chair,
                                     '${quotaType.includedWorkstationsPerOperator} postazioni/operatore',
@@ -531,10 +550,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
           const SizedBox(height: 24),
 
           // Billing Type
-          const Text(
-            'Tipo di Fatturazione',
-            style: AppTextStyles.body,
-          ),
+          const Text('Tipo di Fatturazione', style: AppTextStyles.body),
           const SizedBox(height: 16),
 
           _buildBillingTypeOption(
@@ -580,10 +596,7 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Prezzo',
-                      style: AppTextStyles.caption,
-                    ),
+                    const Text('Prezzo', style: AppTextStyles.caption),
                     const SizedBox(height: 4),
                     Text(
                       _getPrice(quotaTypeProvider),
@@ -692,22 +705,18 @@ class _QuotaBillingStepState extends State<QuotaBillingStep> {
                     title,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style: AppTextStyles.caption,
-                  ),
+                  Text(description, style: AppTextStyles.caption),
                 ],
               ),
             ),
             if (isSelected)
-              const Icon(
-                Icons.check_circle,
-                color: AppColors.primary,
-              ),
+              const Icon(Icons.check_circle, color: AppColors.primary),
           ],
         ),
       ),

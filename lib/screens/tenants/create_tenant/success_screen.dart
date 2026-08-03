@@ -7,10 +7,7 @@ import '../../app_router.dart';
 class SuccessScreen extends StatelessWidget {
   final CreateTenantResponse response;
 
-  const SuccessScreen({
-    super.key,
-    required this.response,
-  });
+  const SuccessScreen({super.key, required this.response});
 
   @override
   Widget build(BuildContext context) {
@@ -41,10 +38,7 @@ class SuccessScreen extends StatelessWidget {
               // Title
               const Text(
                 'Tenant Creato con Successo!',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
 
@@ -53,9 +47,7 @@ class SuccessScreen extends StatelessWidget {
               // Tenant Info
               Text(
                 response.tenant.name,
-                style: AppTextStyles.h2.copyWith(
-                  color: AppColors.primary,
-                ),
+                style: AppTextStyles.h2.copyWith(color: AppColors.primary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
@@ -82,7 +74,10 @@ class SuccessScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.info_outline, color: AppColors.primary),
+                        const Icon(
+                          Icons.info_outline,
+                          color: AppColors.primary,
+                        ),
                         const SizedBox(width: 12),
                         const Text(
                           'Dettagli Tenant',
@@ -104,11 +99,7 @@ class SuccessScreen extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     // Type
-                    _buildInfoRow(
-                      'Tipo',
-                      response.tenant.type,
-                      Icons.category,
-                    ),
+                    _buildInfoRow('Tipo', response.tenant.type, Icons.category),
                     const SizedBox(height: 12),
 
                     // Quota Plan
@@ -146,7 +137,11 @@ class SuccessScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.room, size: 20, color: AppColors.primary),
+                          const Icon(
+                            Icons.room,
+                            size: 20,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 8),
                           const Text(
                             'Aree Create',
@@ -158,25 +153,27 @@ class SuccessScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      ...response.tenant.areasCreated.map((areaName) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              children: [
-                                const Icon(
-                                  Icons.check_circle,
-                                  size: 16,
-                                  color: AppColors.success,
+                      ...response.tenant.areasCreated.map(
+                        (areaName) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.check_circle,
+                                size: 16,
+                                color: AppColors.success,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                areaName,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w500,
                                 ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  areaName,
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -207,10 +204,12 @@ class SuccessScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      ...response.warnings.map((warning) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text('• $warning'),
-                          )),
+                      ...response.warnings.map(
+                        (warning) => Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text('• $warning'),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -225,9 +224,7 @@ class SuccessScreen extends StatelessWidget {
                   OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (_) => const AppRouter(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const AppRouter()),
                         (route) => false,
                       );
                     },
@@ -238,9 +235,7 @@ class SuccessScreen extends StatelessWidget {
                   ElevatedButton.icon(
                     onPressed: () {
                       Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(
-                          builder: (_) => const AppRouter(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const AppRouter()),
                         (route) => false,
                       );
                       // TODO: Navigate to tenant detail
@@ -266,10 +261,7 @@ class SuccessScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: AppTextStyles.caption,
-              ),
+              Text(label, style: AppTextStyles.caption),
               const SizedBox(height: 2),
               Text(
                 value,

@@ -19,7 +19,8 @@ class TenantInfoStep extends StatefulWidget {
     required String adminPhone,
     required String adminFirstName,
     required String adminLastName,
-  }) onNext;
+  })
+  onNext;
 
   const TenantInfoStep({
     super.key,
@@ -52,10 +53,18 @@ class _TenantInfoStepState extends State<TenantInfoStep> {
     super.initState();
     _nameController = TextEditingController(text: widget.initialName);
     _domainController = TextEditingController(text: widget.initialDomain);
-    _adminEmailController = TextEditingController(text: widget.initialAdminEmail);
-    _adminPhoneController = TextEditingController(text: widget.initialAdminPhone);
-    _adminFirstNameController = TextEditingController(text: widget.initialAdminFirstName);
-    _adminLastNameController = TextEditingController(text: widget.initialAdminLastName);
+    _adminEmailController = TextEditingController(
+      text: widget.initialAdminEmail,
+    );
+    _adminPhoneController = TextEditingController(
+      text: widget.initialAdminPhone,
+    );
+    _adminFirstNameController = TextEditingController(
+      text: widget.initialAdminFirstName,
+    );
+    _adminLastNameController = TextEditingController(
+      text: widget.initialAdminLastName,
+    );
     _selectedTenantType = widget.initialTenantType;
 
     // Auto-generate domain from name
@@ -122,10 +131,7 @@ class _TenantInfoStepState extends State<TenantInfoStep> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Informazioni Tenant',
-              style: AppTextStyles.h3,
-            ),
+            const Text('Informazioni Tenant', style: AppTextStyles.h3),
             const SizedBox(height: 8),
             const Text(
               'Inserisci le informazioni base del tenant e dell\'amministratore principale',
@@ -154,7 +160,8 @@ class _TenantInfoStepState extends State<TenantInfoStep> {
                 hintText: 'es: roma',
                 prefixIcon: const Icon(Icons.language),
                 suffixText: '.beautyflow.it',
-                helperText: 'Il dominio viene generato automaticamente dal nome',
+                helperText:
+                    'Il dominio viene generato automaticamente dal nome',
               ),
               validator: Validators.domain,
               textInputAction: TextInputAction.next,
@@ -233,10 +240,7 @@ class _TenantInfoStepState extends State<TenantInfoStep> {
             const Divider(),
             const SizedBox(height: 24),
 
-            const Text(
-              'Dati Amministratore',
-              style: AppTextStyles.h3,
-            ),
+            const Text('Dati Amministratore', style: AppTextStyles.h3),
             const SizedBox(height: 16),
 
             // Admin Email
@@ -278,7 +282,8 @@ class _TenantInfoStepState extends State<TenantInfoStep> {
                       hintText: 'Mario',
                       prefixIcon: Icon(Icons.person),
                     ),
-                    validator: (value) => Validators.minLength(value, 2, 'Nome'),
+                    validator: (value) =>
+                        Validators.minLength(value, 2, 'Nome'),
                     textInputAction: TextInputAction.next,
                   ),
                 ),
@@ -291,7 +296,8 @@ class _TenantInfoStepState extends State<TenantInfoStep> {
                       hintText: 'Rossi',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
-                    validator: (value) => Validators.minLength(value, 2, 'Cognome'),
+                    validator: (value) =>
+                        Validators.minLength(value, 2, 'Cognome'),
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _handleNext(),
                   ),

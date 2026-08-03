@@ -137,9 +137,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
     _nextStep();
   }
 
-  void _updateStep4Data({
-    required List<AreaRequest> areas,
-  }) {
+  void _updateStep4Data({required List<AreaRequest> areas}) {
     setState(() {
       _areas = areas;
     });
@@ -236,9 +234,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
 
         // Navigate to success screen
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => SuccessScreen(response: response),
-          ),
+          MaterialPageRoute(builder: (_) => SuccessScreen(response: response)),
         );
       }
     } catch (e) {
@@ -289,10 +285,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
           onNext: _updateStep4Data,
         );
       case 5:
-        return ThemeStep(
-          initialTheme: _theme,
-          onNext: _updateStep5Data,
-        );
+        return ThemeStep(initialTheme: _theme, onNext: _updateStep5Data);
       case 6:
         return ConfirmationStep(
           name: _name,
@@ -347,9 +340,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
           ),
 
           // Step content
-          Expanded(
-            child: _buildCurrentStep(),
-          ),
+          Expanded(child: _buildCurrentStep()),
 
           // Navigation buttons (shown only if not last step)
           if (!_isLastStep)
@@ -358,10 +349,7 @@ class _CreateTenantWizardState extends State<CreateTenantWizard> {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 border: Border(
-                  top: BorderSide(
-                    color: AppColors.border,
-                    width: 1,
-                  ),
+                  top: BorderSide(color: AppColors.border, width: 1),
                 ),
               ),
               child: Row(

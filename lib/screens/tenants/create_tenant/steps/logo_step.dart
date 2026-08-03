@@ -12,7 +12,8 @@ class LogoStep extends StatefulWidget {
     required String logoPath,
     required String darkLogoPath,
     required String faviconPath,
-  }) onNext;
+  })
+  onNext;
 
   const LogoStep({
     super.key,
@@ -44,7 +45,9 @@ class _LogoStepState extends State<LogoStep> {
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: type == 'favicon' ? ['png', 'ico'] : ['png', 'jpg', 'jpeg', 'svg'],
+        allowedExtensions: type == 'favicon'
+            ? ['png', 'ico']
+            : ['png', 'jpg', 'jpeg', 'svg'],
         allowMultiple: false,
       );
 
@@ -143,10 +146,7 @@ class _LogoStepState extends State<LogoStep> {
           children: [
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             if (required)
               const Text(
@@ -222,7 +222,11 @@ class _LogoStepState extends State<LogoStep> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.success,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -243,7 +247,10 @@ class _LogoStepState extends State<LogoStep> {
                     icon: const Icon(Icons.upload, size: 16),
                     label: const Text('Cambia'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                   ),
                 ],
@@ -286,10 +293,7 @@ class _LogoStepState extends State<LogoStep> {
             // Header
             const Text(
               'Logo e Branding',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(

@@ -105,10 +105,7 @@ class ConfirmationStep extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Conferma e Crea',
-                  style: AppTextStyles.h3,
-                ),
+                const Text('Conferma e Crea', style: AppTextStyles.h3),
                 const SizedBox(height: 8),
                 const Text(
                   'Verifica i dati inseriti e conferma la creazione del tenant',
@@ -134,7 +131,10 @@ class ConfirmationStep extends StatelessWidget {
                   title: 'Amministratore',
                   icon: Icons.person,
                   children: [
-                    _buildInfoRow('Nome Completo', '$adminFirstName $adminLastName'),
+                    _buildInfoRow(
+                      'Nome Completo',
+                      '$adminFirstName $adminLastName',
+                    ),
                     _buildInfoRow('Email', adminEmail),
                     _buildInfoRow('Telefono', adminPhone),
                   ],
@@ -155,9 +155,11 @@ class ConfirmationStep extends StatelessWidget {
                       billingProfile == null
                           ? 'Da compilare dopo (le fatture non partono finche\' mancano)'
                           : [
-                              billingProfile!['business_name'],
-                              billingProfile!['vat_number'],
-                            ].where((v) => v != null && '$v'.isNotEmpty).join(' - '),
+                                  billingProfile!['business_name'],
+                                  billingProfile!['vat_number'],
+                                ]
+                                .where((v) => v != null && '$v'.isNotEmpty)
+                                .join(' - '),
                     ),
                   ],
                 ),
@@ -171,10 +173,14 @@ class ConfirmationStep extends StatelessWidget {
                   children: areas
                       .asMap()
                       .entries
-                      .map((entry) => _buildInfoRow(
-                            entry.key == 0 ? 'Area Principale' : 'Area ${entry.key + 1}',
-                            entry.value.name,
-                          ))
+                      .map(
+                        (entry) => _buildInfoRow(
+                          entry.key == 0
+                              ? 'Area Principale'
+                              : 'Area ${entry.key + 1}',
+                          entry.value.name,
+                        ),
+                      )
                       .toList(),
                 ),
 
@@ -201,10 +207,7 @@ class ConfirmationStep extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          theme.primary,
-                          style: AppTextStyles.bodySmall,
-                        ),
+                        Text(theme.primary, style: AppTextStyles.bodySmall),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -222,10 +225,7 @@ class ConfirmationStep extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          theme.secondary,
-                          style: AppTextStyles.bodySmall,
-                        ),
+                        Text(theme.secondary, style: AppTextStyles.bodySmall),
                       ],
                     ),
                   ],
@@ -239,7 +239,9 @@ class ConfirmationStep extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.warning.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+                    border: Border.all(
+                      color: AppColors.warning.withOpacity(0.3),
+                    ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -308,9 +310,7 @@ class ConfirmationStep extends StatelessWidget {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            border: Border(
-              top: BorderSide(color: AppColors.border, width: 1),
-            ),
+            border: Border(top: BorderSide(color: AppColors.border, width: 1)),
           ),
           child: SizedBox(
             width: double.infinity,
@@ -356,10 +356,7 @@ class ConfirmationStep extends StatelessWidget {
               children: [
                 Icon(icon, size: 20, color: AppColors.primary),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: AppTextStyles.h3,
-                ),
+                Text(title, style: AppTextStyles.h3),
               ],
             ),
             const SizedBox(height: 16),
@@ -380,17 +377,9 @@ class ConfirmationStep extends StatelessWidget {
         children: [
           SizedBox(
             width: 140,
-            child: Text(
-              label,
-              style: AppTextStyles.caption,
-            ),
+            child: Text(label, style: AppTextStyles.caption),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: AppTextStyles.body,
-            ),
-          ),
+          Expanded(child: Text(value, style: AppTextStyles.body)),
         ],
       ),
     );

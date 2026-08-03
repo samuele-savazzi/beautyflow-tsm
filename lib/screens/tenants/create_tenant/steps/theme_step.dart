@@ -9,11 +9,7 @@ class ThemeStep extends StatefulWidget {
   final ThemeRequest? initialTheme;
   final Function({required ThemeRequest theme}) onNext;
 
-  const ThemeStep({
-    super.key,
-    this.initialTheme,
-    required this.onNext,
-  });
+  const ThemeStep({super.key, this.initialTheme, required this.onNext});
 
   @override
   State<ThemeStep> createState() => _ThemeStepState();
@@ -32,8 +28,10 @@ class _ThemeStepState extends State<ThemeStep> {
     _selectedThemeIndex = 0;
     if (widget.initialTheme != null) {
       for (var i = 0; i < predefinedThemes.length; i++) {
-        if (predefinedThemes[i].themeData.primary == widget.initialTheme!.primary &&
-            predefinedThemes[i].themeData.secondary == widget.initialTheme!.secondary) {
+        if (predefinedThemes[i].themeData.primary ==
+                widget.initialTheme!.primary &&
+            predefinedThemes[i].themeData.secondary ==
+                widget.initialTheme!.secondary) {
           _selectedThemeIndex = i;
           break;
         }
@@ -64,10 +62,7 @@ class _ThemeStepState extends State<ThemeStep> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Tema e Personalizzazione',
-              style: AppTextStyles.h3,
-            ),
+            const Text('Tema e Personalizzazione', style: AppTextStyles.h3),
             const SizedBox(height: 8),
             const Text(
               'Seleziona il tema per l\'interfaccia del tenant',
@@ -76,10 +71,7 @@ class _ThemeStepState extends State<ThemeStep> {
             const SizedBox(height: 32),
 
             // Theme Selection Title
-            const Text(
-              'Tema Colori *',
-              style: AppTextStyles.body,
-            ),
+            const Text('Tema Colori *', style: AppTextStyles.body),
             const SizedBox(height: 16),
 
             // Themes Grid
@@ -111,7 +103,9 @@ class _ThemeStepState extends State<ThemeStep> {
                           ? AppColors.primary.withOpacity(0.05)
                           : AppColors.surface,
                       border: Border.all(
-                        color: isSelected ? AppColors.primary : AppColors.border,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.border,
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(12),
@@ -184,10 +178,14 @@ class _ThemeStepState extends State<ThemeStep> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.background),
+                color: _parseColor(
+                  predefinedThemes[_selectedThemeIndex].themeData.background,
+                ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.border),
+                  color: _parseColor(
+                    predefinedThemes[_selectedThemeIndex].themeData.border,
+                  ),
                 ),
               ),
               child: Column(
@@ -198,7 +196,9 @@ class _ThemeStepState extends State<ThemeStep> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.text),
+                      color: _parseColor(
+                        predefinedThemes[_selectedThemeIndex].themeData.text,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -208,14 +208,22 @@ class _ThemeStepState extends State<ThemeStep> {
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
-                            color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.btnBackground),
+                            color: _parseColor(
+                              predefinedThemes[_selectedThemeIndex]
+                                  .themeData
+                                  .btnBackground,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Center(
                             child: Text(
                               'Pulsante',
                               style: TextStyle(
-                                color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.btnText),
+                                color: _parseColor(
+                                  predefinedThemes[_selectedThemeIndex]
+                                      .themeData
+                                      .btnText,
+                                ),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -227,17 +235,29 @@ class _ThemeStepState extends State<ThemeStep> {
                         child: Container(
                           height: 50,
                           decoration: BoxDecoration(
-                            color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.surface),
+                            color: _parseColor(
+                              predefinedThemes[_selectedThemeIndex]
+                                  .themeData
+                                  .surface,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.border),
+                              color: _parseColor(
+                                predefinedThemes[_selectedThemeIndex]
+                                    .themeData
+                                    .border,
+                              ),
                             ),
                           ),
                           child: Center(
                             child: Text(
                               'Card',
                               style: TextStyle(
-                                color: _parseColor(predefinedThemes[_selectedThemeIndex].themeData.textSecondary),
+                                color: _parseColor(
+                                  predefinedThemes[_selectedThemeIndex]
+                                      .themeData
+                                      .textSecondary,
+                                ),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
